@@ -19,7 +19,6 @@ while (true) {
       arr[i] = arr[i + 1];
       arr[i + 1] = tmp;
       castlings++;
-      continue;
     }
   }
   if (castlings == 0) {
