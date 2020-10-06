@@ -9,7 +9,7 @@ function getWeekDay(date) {
 
 let date = new Date(2021, 2, 1);
 
-document.write('<table bordercolor="#000" border="1"');
+document.write('<table bordercolor="#000" border="1">');
 
 document.write('<caption>February 2021</caption>');
 
