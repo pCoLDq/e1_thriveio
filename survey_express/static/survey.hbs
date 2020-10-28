@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey</title>
+    <style>
+        .question-block {
+            width: 800px;
+            position: relative;
+            left: 30%;
+            padding: 5px 0px 5px 20px;
+            background-color: aquamarine;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="question-block">
+        <h3>{{question}}</h3>
+        <form action="/submit" method="GET">
+            <p><input type="radio" value="{{answer1id}}" name="answer" /> {{answer1}}</p>
+            <p><input type="radio" value="{{answer2id}}" name="answer" /> {{answer2}}</p>
+            <p><input type="radio" value="{{answer3id}}" name="answer" /> {{answer3}}</p>
+            <p><input type="radio" value="{{answer4id}}" name="answer" /> {{answer4}}</p>
+            <p><input type="submit" /> </p>
+
+        </form>
+    </div>
+
+</body>
+
+</html>
