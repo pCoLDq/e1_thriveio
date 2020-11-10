@@ -11,7 +11,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   database: 'survey_express',
-  password: 'ghj555666',
+  password: 'passsword',
 });
 
 const authRouter = express.Router();
