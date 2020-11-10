@@ -17,6 +17,12 @@
 </head>
 
 <body>
+    {{#if isAuthenticated}}
+    <h5>Logged as {{username}}</h5>
+    {{else}}
+    <a href="/register">Sign Up</a>
+    <a href="/login">Sign In</a>
+    {{/if}}
     <div class="question-block">
         <h3>{{question}}</h3>
         <form action="/submit" method="GET">
