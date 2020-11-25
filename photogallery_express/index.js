@@ -3,14 +3,19 @@ const mysql = require('mysql2');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
+const fs = require('fs');
+const sharp = require('sharp');
+const path = require('path');
 
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  database: 'survey_express',
+  database: 'photogallery_express',
   password: 'password',
 });
 
@@ -83,7 +88,7 @@ app.post('/login', (request, response) => {
         };
         const authToken = generateAuthToken();
         response.cookie('AuthToken', authToken);
-        connection.execute('INSERT INTO `authTokens` (`token`, `user_id`) VALUES (?, ?)', [authToken, user.id], () => {
+        connection.execute('INSERT INTO `authtokens` (`token`, `user_id`) VALUES (?, ?)', [authToken, user.id], () => {
           console.log('token created');
         });
         response.redirect('/');
@@ -93,6 +98,23 @@ app.post('/login', (request, response) => {
         });
         return;
       }
+    }
+  );
+});
+
+app.get('/photo_db/:fn', (request, response) => {
+  response.sendFile(
+    'C:/Users/elvis/Documents/Workspace/JavaScript/thrive_tasks/photogallery_express/photo_db/' + request.params.fn
+  );
+});
+app.get('/details/:fn', (request, response) => {
+  connection.execute(
+    'SELECT description FROM photos WHERE filename = ?',
+    [request.params.fn],
+    (errDesc, resultsDesc, fieldsDesc) => {
+      response.render('details.hbs', {
+        description: resultsDesc[0]['description'],
+      });
     }
   );
 });
@@ -107,67 +129,89 @@ app.get('/login', (request, response) => {
 app.get('/', (request, response) => {
   let isAuthenticated = false;
   let user = {};
-  connection.query('SELECT * FROM authTokens', (errTokens, resultsTokens, fieldsTokens) => {
+  connection.query('SELECT * FROM authtokens', (errTokens, resultsTokens, fieldsTokens) => {
     // console.log(118, resultsTokens);
-    if (
+    resultsTokens.find((token) => {
+      if (token.token === request.cookies['AuthToken']) {
+        isAuthenticated = true;
+        connection.execute(
+          'SELECT * FROM users WHERE id = ?',
+          [token.user_id],
+          (errUsers, resultsUsers, fieldsUsers) => {
+            user = resultsUsers[0];
+            console.log(126, user);
+            connection.query('SELECT * FROM photos', (errPhotos, resultsPhotos, fieldsPhotos) => {
+              console.log(136, resultsPhotos);
+              let fnames = [];
+              for (let i = 0; i < resultsPhotos.length; i++) {
+                fnames.push(resultsPhotos[i]['filename']);
+              }
+              console.log(fnames);
+              response.render('main.hbs', {
+                isAuthenticated,
+                username: user.username,
+                fnames,
+              });
+            });
+          }
+        );
+      }
+    });
+  });
+});
+
+app.post(
+  '/submit_upload',
+  upload.single('image_upload'),
+  [
+    // validation ...
+  ],
+  (request, response) => {
+    let user = {};
+    connection.query('SELECT * FROM authtokens', (errTokens, resultsTokens, fieldsTokens) => {
       resultsTokens.find((token) => {
         if (token.token === request.cookies['AuthToken']) {
-          console.log(122, token);
           isAuthenticated = true;
           connection.execute(
             'SELECT * FROM users WHERE id = ?',
             [token.user_id],
             (errUsers, resultsUsers, fieldsUsers) => {
-              console.log(131, resultsUsers);
               user = resultsUsers[0];
+              console.log(173, user);
+              let userUploads = fs
+                .readdirSync('photo_db')
+                .filter(function (fn) {
+                  return fn.split('_')[0] == user.id;
+                })
+                .sort();
+              console.log(188, userUploads);
+
+              let fileID =
+                userUploads.length == 0
+                  ? '1'
+                  : String(+userUploads[userUploads.length - 1].split('_')[1].split('.')[0] + 1);
+              let filename = `${user.id}_${fileID}.${request.file.mimetype.split('/')[1]}`;
+              connection.execute(
+                'INSERT INTO `photos` (`filename`, `description`) VALUES (?, ?)',
+                [filename, request.body.description],
+                (errAnswers, resultsAnswers, fieldsAnswers) => {
+                  // fs.writeFileSync(`photo_db/${filename}`, request.file.buffer);
+                  sharp(request.file.buffer)
+                    .resize(300, 300)
+                    .toFile(`photo_db/${filename}`, (err, info) => {
+                      if (err) throw err;
+                      console.log(info);
+                      response.redirect('/');
+                    });
+                }
+              );
             }
           );
-          return true;
         }
-      })
-    ) {
-    }
-  });
-  connection.query('SELECT * FROM questions', (errQuestions, resultsQuestions, fieldsQuestions) => {
-    connection.execute(
-      'SELECT * FROM answers WHERE question = ?',
-      [resultsQuestions[0]['id']],
-      (errAnswers, resultsAnswers, fieldsAnswers) => {
-        // console.log(143, request.cookies['AuthToken'], user.username);
-        response.render('survey.hbs', {
-          isAuthenticated,
-          username: user.username,
-          question: resultsQuestions[0]['text'],
-          answer1: resultsAnswers[0]['text'],
-          answer2: resultsAnswers[1]['text'],
-          answer3: resultsAnswers[2]['text'],
-          answer4: resultsAnswers[3]['text'],
-          answer1id: resultsAnswers[0]['id'],
-          answer2id: resultsAnswers[1]['id'],
-          answer3id: resultsAnswers[2]['id'],
-          answer4id: resultsAnswers[3]['id'],
-        });
-      }
-    );
-  });
-});
-
-app.get('/submit', (request, response) => {
-  connection.execute(
-    'UPDATE `answers` SET `choices` = `choices` + 1 WHERE id = ?',
-    [request.query.answer],
-    (errAnswers, resultsAnswers, fieldsAnswers) => {
-      connection.query('SELECT choices FROM answers WHERE question IN (1)', (err, results, fields) => {
-        response.render('results.hbs', {
-          resAnswer1: results[0]['choices'],
-          resAnswer2: results[1]['choices'],
-          resAnswer3: results[2]['choices'],
-          resAnswer4: results[3]['choices'],
-        });
       });
-    }
-  );
-});
+    });
+  }
+);
 
 const port = 8000;
 app.listen(port, () => {
