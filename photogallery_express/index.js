@@ -43,7 +43,6 @@ app.post('/register', (request, response) => {
   const { username, password, confPassword } = request.body;
   if (password === confPassword) {
     connection.execute('SELECT * FROM users WHERE username = ?;', [username], (errUsers, resultsUsers, fieldsUsers) => {
-      // console.log(84, resultsUsers, typeof resultsUsers[0]);
       if (resultsUsers[0] != undefined) {
         response.render('register.hbs', {
           message: 'Username already registered',
@@ -79,7 +78,6 @@ app.post('/login', (request, response) => {
     'SELECT * FROM users WHERE username = ? AND password = ?;',
     [username, hashedPassword],
     (errUsers, resultsUsers, fieldsUsers) => {
-      // console.log(72, resultsUsers, typeof resultsUsers, typeof resultsUsers[0]);
       let user = resultsUsers[0];
       if (user != undefined) {
         // console.log(76, user);
@@ -103,9 +101,7 @@ app.post('/login', (request, response) => {
 });
 
 app.get('/photo_db/:fn', (request, response) => {
-  response.sendFile(
-    'C:/Users/elvis/Documents/Workspace/JavaScript/thrive_tasks/photogallery_express/photo_db/' + request.params.fn
-  );
+  response.sendFile(path.resolve('photo_db/' + request.params.fn).replace(/\//g, '\\'));
 });
 app.get('/details/:fn', (request, response) => {
   connection.execute(
@@ -126,9 +122,8 @@ app.get('/login', (request, response) => {
   response.render('login.hbs');
 });
 
-app.get('/', (request, response) => {
+app.use(function (request, response, next) {
   let isAuthenticated = false;
-  let user = {};
   connection.query('SELECT * FROM authtokens', (errTokens, resultsTokens, fieldsTokens) => {
     // console.log(118, resultsTokens);
     resultsTokens.find((token) => {
@@ -138,24 +133,28 @@ app.get('/', (request, response) => {
           'SELECT * FROM users WHERE id = ?',
           [token.user_id],
           (errUsers, resultsUsers, fieldsUsers) => {
-            user = resultsUsers[0];
-            console.log(126, user);
-            connection.query('SELECT * FROM photos', (errPhotos, resultsPhotos, fieldsPhotos) => {
-              console.log(136, resultsPhotos);
-              let fnames = [];
-              for (let i = 0; i < resultsPhotos.length; i++) {
-                fnames.push(resultsPhotos[i]['filename']);
-              }
-              console.log(fnames);
-              response.render('main.hbs', {
-                isAuthenticated,
-                username: user.username,
-                fnames,
-              });
-            });
+            request.user = resultsUsers[0];
+            request.isAuthenticated = isAuthenticated;
+            console.log(request.user);
+            next();
           }
         );
       }
+    });
+  });
+});
+
+app.get('/', (request, response) => {
+  connection.query('SELECT * FROM photos', (errPhotos, resultsPhotos, fieldsPhotos) => {
+    let fnames = [];
+    for (let i = 0; i < resultsPhotos.length; i++) {
+      fnames.push(resultsPhotos[i]['filename']);
+    }
+    console.log(fnames);
+    response.render('main.hbs', {
+      isAuthenticated: request.isAuthenticated,
+      username: request.user.username,
+      fnames,
     });
   });
 });
@@ -167,49 +166,29 @@ app.post(
     // validation ...
   ],
   (request, response) => {
-    let user = {};
-    connection.query('SELECT * FROM authtokens', (errTokens, resultsTokens, fieldsTokens) => {
-      resultsTokens.find((token) => {
-        if (token.token === request.cookies['AuthToken']) {
-          isAuthenticated = true;
-          connection.execute(
-            'SELECT * FROM users WHERE id = ?',
-            [token.user_id],
-            (errUsers, resultsUsers, fieldsUsers) => {
-              user = resultsUsers[0];
-              console.log(173, user);
-              let userUploads = fs
-                .readdirSync('photo_db')
-                .filter(function (fn) {
-                  return fn.split('_')[0] == user.id;
-                })
-                .sort();
-              console.log(188, userUploads);
-
-              let fileID =
-                userUploads.length == 0
-                  ? '1'
-                  : String(+userUploads[userUploads.length - 1].split('_')[1].split('.')[0] + 1);
-              let filename = `${user.id}_${fileID}.${request.file.mimetype.split('/')[1]}`;
-              connection.execute(
-                'INSERT INTO `photos` (`filename`, `description`) VALUES (?, ?)',
-                [filename, request.body.description],
-                (errAnswers, resultsAnswers, fieldsAnswers) => {
-                  // fs.writeFileSync(`photo_db/${filename}`, request.file.buffer);
-                  sharp(request.file.buffer)
-                    .resize(300, 300)
-                    .toFile(`photo_db/${filename}`, (err, info) => {
-                      if (err) throw err;
-                      console.log(info);
-                      response.redirect('/');
-                    });
-                }
-              );
-            }
-          );
-        }
-      });
-    });
+    let userUploads = fs
+      .readdirSync('photo_db')
+      .filter(function (fn) {
+        return fn.split('_')[0] == request.user.id;
+      })
+      .sort();
+    console.log(188, userUploads);
+    let fileID =
+      userUploads.length == 0 ? '1' : String(+userUploads[userUploads.length - 1].split('_')[1].split('.')[0] + 1);
+    let filename = `${request.user.id}_${fileID}.${request.file.mimetype.split('/')[1]}`;
+    connection.execute(
+      'INSERT INTO `photos` (`filename`, `description`) VALUES (?, ?)',
+      [filename, request.body.description],
+      (errAnswers, resultsAnswers, fieldsAnswers) => {
+        sharp(request.file.buffer)
+          .resize(300, 300)
+          .toFile(`photo_db/${filename}`, (err, info) => {
+            if (err) throw err;
+            console.log(info);
+            response.redirect('/');
+          });
+      }
+    );
   }
 );
 
