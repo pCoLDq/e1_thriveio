@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photogallery</title>
+    <style>
+        #gallery-block {
+            width: 1250px;
+            height: 800px;
+            position: relative;
+            top: 60%;
+            left: 19%;
+            background-color: aquamarine;
+
+        }
+
+        .photo-miniature {
+            display: inline-block;
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin: 0px 5px 5px 0px;
+        }
+
+        button {
+            margin-top: 30px;
+            float: left;
+            height: 50px;
+        }
+    </style>
+    <script>
+
+    </script>
+</head>
+
+<body>
+    {{#if isAuthenticated}}
+    <h5>Logged as {{username}}</h5>
+    <form action="/submit_upload" method="post" enctype="multipart/form-data">
+        <div>
+            <label for="image_upload">Choose images to upload (PNG, JPG)</label>
+            <br>
+            <input type="file" id="image_upload" name="image_upload" accept=".jpg, .jpeg, .png" required>
+        </div>
+        <br>
+        <div>
+            <label for="desc">Enter a description</label>
+            <input type="text" id="desc" name="description" required>
+        </div>
+        <div>
+            <button>Send</button>
+        </div>
+    </form>
+    {{else}}
+    <a href="/register">Sign Up</a>
+    <a href="/login">Sign In</a>
+    <br />
+    {{/if}}
+    <div id="gallery-block">
+        {{#each fnames}}
+        <div class="photo-miniature">
+            <a href="details/{{this}}"><img src="photo_db/{{this}}/" alt="Not Found"></a>
+        </div>
+        {{/each}}
+
+    </div>
+
+</body>
+
+</html>

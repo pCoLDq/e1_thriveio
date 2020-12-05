@@ -125,7 +125,6 @@ app.get('/login', (request, response) => {
 app.use(function (request, response, next) {
   let isAuthenticated = false;
   connection.query('SELECT * FROM authtokens', (errTokens, resultsTokens, fieldsTokens) => {
-    // console.log(118, resultsTokens);
     resultsTokens.find((token) => {
       if (token.token === request.cookies['AuthToken']) {
         isAuthenticated = true;
