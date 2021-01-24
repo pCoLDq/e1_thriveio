@@ -5,10 +5,11 @@ const AuthRoutes = require('./auth.routes');
 router.post('/auth', AuthRoutes);
 
 router.get('/', (request, response) => {
-  response.render('main.hbs', {
-    isAuthenticated: request.isAuthenticated,
-    username: request.user.username,
-  });
+  // sending data
+  // response.render('main.hbs', {
+  //   isAuthenticated: request.isAuthenticated,
+  //   username: request.user.username,
+  // });
 });
 
 module.exports = router;

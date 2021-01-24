@@ -1,0 +1,17 @@
+{
+  "name": "beekeepers_and_farmers_board",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "v",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mysql2": "^2.2.5",
+    "sharp": "^0.26.3"
+  },
+  "license": "ISC"
+}

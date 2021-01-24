@@ -9,10 +9,10 @@ const app = express();
 
 const routes = require('./routes/index');
 
-const connection = mysql.createConnection({
+export const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  database: 'photogallery_express',
+  database: 'beekeepers_and_farmers',
   password: 'password',
 });
 
@@ -23,11 +23,6 @@ connection.connect((err) => {
     console.log('Connection to MySQL Server successfully spawned');
   }
 });
-
-export { connection };
-
-app.set('view engine', 'hbs');
-app.set('views', __dirname + '/static');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
