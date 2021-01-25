@@ -1,34 +1,61 @@
-import { connection } from '../app';
-const crypto = require('crypto');
-
-const getHashedPassword = (password) => {
-  const sha256 = crypto.createHash('sha256');
-  const hash = sha256.update(password).digest('base64');
-  return hash;
-};
+// const connection = require('../config/db_connect');
+const connection = require('../config/db_connect_async');
+const getHashedPassword = require('../service_functions/passwords_encoding');
 
 class AuthService {
-  registerUser(username, password) {
-    connection.execute('SELECT * FROM users WHERE username = ?;', [username], (errUsers, resultsUsers, fieldsUsers) => {
-      if (resultsUsers[0] != undefined) {
-        return false;
-      }
-      const hashedPassword = getHashedPassword(password);
+  async registerUser(username, email, password) {
+    const hashedPassword = getHashedPassword(password);
+    let status = false;
 
-      connection.execute(
-        'INSERT INTO `users` (`username`, `password`) VALUES (?, ?)',
-        [username, hashedPassword],
-        (errUsers, resultsUsers, fieldsUsers) => {
-          console.log('user registered');
-        }
-      );
-      return true;
-    });
+    await connection
+      .execute('INSERT INTO `users` (`username`, `email`, `password`) VALUES (?, ?, ?)', [
+        username,
+        email,
+        hashedPassword,
+      ])
+      .then(() => {
+        console.log('user registered:', username);
+        status = true;
+      });
+    return status;
   }
-  createAuthToken(authToken, user_id) {
-    connection.execute('INSERT INTO `authtokens` (`token`, `user_id`) VALUES (?, ?)', [authToken, user_id], () => {
-      console.log('token created');
-    });
+
+  async checkIfTheUsernameOrEmailIsTaken(username, email) {
+    let status = true; // пользователь с таким именем или почтой уже зарегестрирован
+
+    const resultsUsers = await connection.execute('SELECT * FROM users WHERE username = ? OR email = ?;', [
+      username,
+      email,
+    ]);
+
+    console.log('authservice.checkIfTheUsernameOrEmailIsTaken: resultsUsers[0]', resultsUsers[0]);
+    if (resultsUsers[0] != []) {
+      status = false; // всё збс
+    }
+    return status;
+  }
+
+  async createAuthToken(authToken, user_id) {
+    await connection
+      .execute('INSERT INTO `authtokens` (`token`, `user_id`) VALUES (?, ?)', [authToken, user_id])
+      .then(() => console.log(`token for ${user_id} created`));
+    return;
+  }
+
+  async authenticationUser(username, hashedPassword) {
+    const resultsUsers = await connection.execute('SELECT * FROM users WHERE username = ? AND password = ?;', [
+      username,
+      hashedPassword,
+    ]);
+
+    const user = resultsUsers[0][0];
+    console.log('auth.service.authenticationUser: user', user);
+
+    if (user.username != undefined) {
+      console.log('credentials', user.id);
+      return user; // всё збс, введённые данные верны
+    }
+    return false; // не збс, пароль или username неверны, возможно идёт взлом жопы
   }
 }
 
