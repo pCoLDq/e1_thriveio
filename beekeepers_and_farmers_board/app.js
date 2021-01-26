@@ -1,7 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
+require('dotenv').config();
 
 const app = express();
 
@@ -13,7 +13,7 @@ app.use(cookieParser());
 
 app.use('/', routes);
 
-const port = 8000;
+const port = process.env.PORT || 8000;
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
