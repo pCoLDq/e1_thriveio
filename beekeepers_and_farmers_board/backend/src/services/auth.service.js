@@ -3,43 +3,86 @@ const connection = require('../config/db_connect_async');
 const getHashedPassword = require('../service_functions/passwords_encoding');
 
 class AuthService {
-  async registerUser(username, email, password) {
+  async registerUser(username, email, userType, password, numOfHives) {
     const hashedPassword = getHashedPassword(password);
     let status = false;
 
-    await connection
-      .execute('INSERT INTO `users` (`username`, `email`, `password`) VALUES (?, ?, ?)', [
-        username,
-        email,
-        hashedPassword,
-      ])
-      .then(() => {
-        console.log('user registered:', username);
-        status = true;
-      });
+    await connection.execute('INSERT INTO `users` (`username`, `email`, `password`) VALUES (?, ?, ?)', [
+      username,
+      email,
+      hashedPassword,
+    ]); // registering user
+
+    const userIdResults = await connection.execute('SELECT id FROM users WHERE username = ?', [username]);
+    const userId = userIdResults[0][0].id;
+
+    if (userType == 'beekeeper') {
+      await connection.execute('INSERT INTO `beekeepers` (`user_id`, `num_of_hives`) VALUES (?, ?)', [
+        userId,
+        numOfHives,
+      ]); // registering beekeeper
+    } else if (userType == 'farmer') {
+      await connection.execute('INSERT INTO `farmers` (`user_id`) VALUES (?)', [userId]);
+    } // registering farmer
+
+    console.log('user registered:', username);
+    status = true;
+
     return status;
   }
 
   async checkIfTheUsernameOrEmailIsTaken(username, email) {
-    let status = true; // пользователь с таким именем или почтой уже зарегестрирован
+    let status = true; // true if user with this name or email address is already registered, false if not
 
     const resultsUsers = await connection.execute('SELECT * FROM users WHERE username = ? OR email = ?;', [
       username,
       email,
     ]);
-
+    const user = resultsUsers[0][0];
     console.log('authservice.checkIfTheUsernameOrEmailIsTaken: resultsUsers[0]', resultsUsers[0]);
-    if (resultsUsers[0] != []) {
-      status = false; // всё збс
+
+    if (!user) {
+      status = false; // that's alright, user with this name or email address isnt registered yet
     }
+
     return status;
   }
 
-  async createAuthToken(authToken, user_id) {
+  async createOrUpdateAuthToken(authToken, userId) {
+    const authtokensResults = await connection.execute('SELECT * FROM authtokens WHERE user_id = ?', [userId]);
+    const potentialAuthtoken = authtokensResults[0][0];
+
+    if (potentialAuthtoken) {
+      await connection.execute('DELETE FROM authtokens WHERE user_id = ?', [userId]);
+    } // deleting an existing authtoken
+
     await connection
-      .execute('INSERT INTO `authtokens` (`token`, `user_id`) VALUES (?, ?)', [authToken, user_id])
-      .then(() => console.log(`token for ${user_id} created`));
+      .execute('INSERT INTO `authtokens` (`token`, `user_id`) VALUES (?, ?)', [authToken, userId])
+      .then(() => console.log(`token for ${userId} created`));
     return;
+  }
+
+  async getUserType(userId) {
+    const beekeepersResults = await connection.execute('SELECT * FROM beekeepers WHERE user_id = ?;', [userId]);
+    const potentialBeekeeper = beekeepersResults[0][0];
+
+    if (potentialBeekeeper) {
+      return {
+        userType: 'beekeeper',
+        numOfHives: potentialBeekeeper.num_of_hives,
+      };
+    }
+
+    const farmersResults = await connection.execute('SELECT * FROM farmers WHERE user_id = ?;', [userId]);
+    const potentialFarmer = farmersResults[0][0];
+
+    if (potentialFarmer) {
+      return {
+        userType: 'farmer',
+      };
+    }
+
+    return null;
   }
 
   async authenticationUser(username, hashedPassword) {
@@ -51,11 +94,24 @@ class AuthService {
     const user = resultsUsers[0][0];
     console.log('auth.service.authenticationUser: user', user);
 
-    if (user.username != undefined) {
+    if (user != undefined) {
       console.log('credentials', user.id);
-      return user; // всё збс, введённые данные верны
+
+      const userTypeData = await this.getUserType(user.id);
+      if (userTypeData == null) {
+        return false;
+      }
+
+      return Object.assign(
+        {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+        },
+        userTypeData
+      ); // tht's alright, the entered data is correct
     }
-    return false; // не збс, пароль или username неверны, возможно идёт взлом жопы
+    return false; // not good, the password or username is incorrect, probably there's a ass hacking
   }
 }
 
