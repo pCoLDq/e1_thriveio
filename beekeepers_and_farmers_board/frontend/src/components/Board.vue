@@ -1,5 +1,5 @@
 <template>
-     <div>
+    <div>
 
     </div>
 </template>
@@ -18,7 +18,7 @@ div {
   width: 50%;
   height: 100%;
   left: 25%;
-  background-color:aquamarine;
+  background-color:#8bd89d;
   opacity: 0.4;
   overflow:scroll;
 }

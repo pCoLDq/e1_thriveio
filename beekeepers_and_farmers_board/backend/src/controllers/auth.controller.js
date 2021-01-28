@@ -16,6 +16,7 @@ class AuthController {
       }
       return;
     } else {
+      console.log('passwords doesnt match');
       response.sendStatus(400); // passwords dont match or the user with the same username or email is already registered
       return;
     }
