@@ -7,7 +7,11 @@ class AuthController {
     const { username, email, userType, numOfHives, password, confPassword } = request.body;
     const isTaken = await AuthService.checkIfTheUsernameOrEmailIsTaken(username, email);
     console.log('isTaken:', isTaken);
-    if (password === confPassword && !isTaken) {
+    if (isTaken) {
+      response.sendStatus(409); // user with the same username or email is already registered
+      return;
+    }
+    if (password === confPassword) {
       const signup = await AuthService.registerUser(username, email, userType, password, numOfHives);
       if (signup) {
         response.sendStatus(201); // user successfully registered
@@ -17,7 +21,7 @@ class AuthController {
       return;
     } else {
       console.log('passwords doesnt match');
-      response.sendStatus(400); // passwords dont match or the user with the same username or email is already registered
+      response.sendStatus(400); // passwords dont match
       return;
     }
   }
@@ -29,13 +33,29 @@ class AuthController {
     console.log('authcontroller.loginUser: user', user);
     if (user) {
       const authToken = generateAuthToken();
-      response.cookie('AuthToken', authToken);
-      await AuthService.createOrUpdateAuthToken(authToken, user.id);
-
-      response.status(202).send(user); // successful authentication
+      response.set('AuthToken', authToken);
+      await AuthService.createOrUpdateAuthToken(authToken, user);
+      console.log('successful authentication');
+      response.status(202).send({ AuthToken: authToken }); // successful authentication
       return;
     } else {
       response.sendStatus(403); // invalid username or password
+      return;
+    }
+  }
+  async getUserData(request, response) {
+    const authtoken = request.header('AuthToken');
+    console.log('authcontroller.getUserData: authtoken', authtoken);
+    if (!authtoken) {
+      response.sendStatus(404);
+      return;
+    }
+    const userData = await AuthService.getUserDataByAuthToken(authtoken);
+    if (userData) {
+      response.status(200).send(userData);
+      return;
+    } else {
+      response.sendStatus(404); // Not found: token or user doesnt exists
       return;
     }
   }

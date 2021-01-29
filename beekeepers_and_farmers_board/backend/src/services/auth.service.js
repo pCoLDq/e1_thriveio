@@ -49,6 +49,8 @@ class AuthService {
   }
 
   async createOrUpdateAuthToken(authToken, userId) {
+    console.log('authservuce.createOrUpdateAuthToken: authtoken', authToken);
+    console.log('authservuce.createOrUpdateAuthToken: userId', userId);
     const authtokensResults = await connection.execute('SELECT * FROM authtokens WHERE user_id = ?', [userId]);
     const potentialAuthtoken = authtokensResults[0][0];
 
@@ -82,7 +84,7 @@ class AuthService {
       };
     }
 
-    return null;
+    return false;
   }
 
   async authenticationUser(username, hashedPassword) {
@@ -96,22 +98,34 @@ class AuthService {
 
     if (user != undefined) {
       console.log('credentials', user.id);
-
-      const userTypeData = await this.getUserType(user.id);
-      if (userTypeData == null) {
-        return false;
-      }
-
-      return Object.assign(
-        {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-        },
-        userTypeData
-      ); // tht's alright, the entered data is correct
+      return user.id; // tht's alright, the entered data is correct
     }
     return false; // not good, the password or username is incorrect, probably there's a ass hacking
+  }
+  async getUserDataByAuthToken(authtoken) {
+    const resultsAuthtokens = await connection.execute('SELECT * FROM authtokens WHERE token = ?', [authtoken]);
+    const potentialAuthtoken = resultsAuthtokens[0][0];
+
+    if (potentialAuthtoken) {
+      const resultsUsers = await connection.execute('SELECT * FROM users WHERE id = ?;', [potentialAuthtoken.user_id]);
+      const potentialUser = resultsUsers[0][0];
+      const userTypeData = await this.getUserType(potentialUser.id);
+
+      if (potentialUser && userTypeData) {
+        return Object.assign(
+          {
+            id: potentialUser.id,
+            username: potentialUser.username,
+            email: potentialUser.email,
+          },
+          userTypeData
+        );
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
   }
 }
 
