@@ -127,6 +127,10 @@ class AuthService {
       return false;
     }
   }
+  async deleteAuthToken(authtoken) {
+    await connection.execute('DELETE FROM authtokens WHERE token = ?', [authtoken]);
+    return;
+  }
 }
 
 module.exports = new AuthService();

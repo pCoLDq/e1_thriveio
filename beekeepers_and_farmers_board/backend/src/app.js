@@ -5,7 +5,13 @@ const app = express();
 
 const cors = require('cors');
 
-app.use(cors());
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    methods: 'GET,POST',
+    credentials: true,
+  })
+);
 
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');

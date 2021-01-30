@@ -30,13 +30,14 @@ export default {
       console.log('input', formData);
       this.serverMessage = '';
 
-      axios.post('/login', formData)
+      axios.post('/login', formData, {
+        withCredentials: true
+      })
       .then((response) => {
         console.log("SignIn.vue: response", response);
         if(response.status == 202) {
-          localStorage.AuthToken = response.headers['authtoken'];
           console.log('response', response);
-          console.log('localStorage.AuthToken ===', localStorage.AuthToken);
+          localStorage.credentials = true;
           location.assign('/')
         }
       })

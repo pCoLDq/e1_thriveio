@@ -33,8 +33,10 @@ class AuthController {
     console.log('authcontroller.loginUser: user', user);
     if (user) {
       const authToken = generateAuthToken();
-      response.set('AuthToken', authToken);
-      response.set('Access-Control-Expose-Headers', 'AuthToken');
+      response.cookie('AuthToken', authToken, {
+        httpOnly: true,
+        sameSite: true,
+      });
       await AuthService.createOrUpdateAuthToken(authToken, user);
       console.log('successful authentication');
       response.sendStatus(202); // successful authentication
@@ -45,8 +47,8 @@ class AuthController {
     }
   }
   async getUserData(request, response) {
-    const authtoken = request.header('authtoken');
-    console.log('authcontroller.getUserData: authtoken', authtoken);
+    const authtoken = request.cookies['AuthToken'];
+    console.log("authcontroller.getUserData: request.cookies['AuthToken']", authtoken);
     if (!authtoken) {
       response.sendStatus(404);
       return;
@@ -57,6 +59,20 @@ class AuthController {
       return;
     } else {
       response.sendStatus(404); // Not found: token or user doesnt exists
+      return;
+    }
+  }
+  async logoutUser(request, response) {
+    const authtoken = request.cookies['AuthToken'];
+    console.log(request.cookies);
+    console.log('authcontroller.logoutUser: authtoken', authtoken);
+    if (authtoken) {
+      await AuthService.deleteAuthToken(authtoken);
+      response.clearCookie('AuthToken');
+      response.sendStatus(200);
+      return;
+    } else {
+      response.sendStatus(404);
       return;
     }
   }

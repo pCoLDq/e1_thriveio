@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <div class="auth" v-if="!authtoken">
+    <div class="auth" v-if="!credentials">
         <router-link to="/signup" ><p class="link">SignUp</p> </router-link>
         <br/>
         <br/>
@@ -16,10 +16,10 @@
 
      <Board />
     
-    <div v-if="userType == 'beekeeper'" class="functions-for-beekeepers">
+    <div v-if="userType == 'farmer'" class="functions-for-farmers">
       <router-link to="/addtender" > <p class="link">Add Tender</p> </router-link>
     </div>
-    <button @click="onLogout" v-if="authtoken"><p class="link button-cover">Logout</p> </button>
+    <p class="link logout-button"  @click="onLogout" v-if="credentials">Logout</p>
   </div>
 </template>
 
@@ -38,7 +38,7 @@ export default {
   },
   data() {
     return {
-      authtoken: '',
+      credentials: localStorage.credentials == 'true' ? true : false,
       username: '',
       email: '',
       userType: '',
@@ -46,16 +46,10 @@ export default {
     }
   },
   mounted() {
-    this.authtoken = localStorage.AuthToken
-    console.log('mounted', this.authtoken)
-  },
-  watch: {
-    authtoken(token) {
-
+    if(localStorage.credentials == 'true') {
+      console.log(localStorage.credentials);
       axios.get('/auth/user_data', {
-        headers: {
-          'AuthToken': token
-        }
+        withCredentials: true
       })
       .then((response) => {
         console.log('Home.vue: response', response);
@@ -74,8 +68,19 @@ export default {
   },
   methods: {
     onLogout() {
-      localStorage.AuthToken = '';
-      location.reload();
+      axios.get('/auth/logout', {
+        withCredentials: true
+      })
+      .then((response) => {
+        console.log('onLogout() response: ', response);
+        if (response.status == 200) {
+          localStorage.credentials = false;
+          location.reload();
+        }
+      })
+      .catch((error) => {
+        console.log('ErRoR', error);
+      })
     }
   }
 }
@@ -88,7 +93,7 @@ export default {
 .auth {
   display: flex;
 }
-.functions-for-beekeepers {
+.functions-for-farmers {
   margin-left: auto;
   margin-right: 8%;
 }
@@ -121,15 +126,12 @@ a {
   padding: 20px;
   color: white;
 }
-button {
-  height: 60px;
-  background-color: white;
-  border: 0;
+.logout-button {
   position: absolute;
   top: 250px;
   
 }
-.button-cover {
+.logout-button {
   cursor: pointer;
 }
 </style>

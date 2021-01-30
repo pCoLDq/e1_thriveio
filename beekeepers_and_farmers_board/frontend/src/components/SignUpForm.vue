@@ -75,6 +75,10 @@ export default {
 </script>
 
 <style scoped>
+:active, :hover, :focus {
+    outline: 0;
+    outline-offset: 0;
+}
 .main {
   width: 600px;
   height: 600px;
