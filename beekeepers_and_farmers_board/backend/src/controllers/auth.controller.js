@@ -64,7 +64,6 @@ class AuthController {
   }
   async logoutUser(request, response) {
     const authtoken = request.cookies['AuthToken'];
-    console.log(request.cookies);
     console.log('authcontroller.logoutUser: authtoken', authtoken);
     if (authtoken) {
       await AuthService.deleteAuthToken(authtoken);

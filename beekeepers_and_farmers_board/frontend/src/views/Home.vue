@@ -29,6 +29,7 @@ import Axios from 'axios'
 
 const axios = Axios.create({
   baseURL: 'http://localhost:8080/',
+  withCredentials: true,
   timeout: 3000
 });
 
@@ -48,9 +49,7 @@ export default {
   mounted() {
     if(localStorage.credentials == 'true') {
       console.log(localStorage.credentials);
-      axios.get('/auth/user_data', {
-        withCredentials: true
-      })
+      axios.get('/auth/user_data')
       .then((response) => {
         console.log('Home.vue: response', response);
         if(response.status == 200) {
@@ -62,15 +61,16 @@ export default {
       })
       .catch((error) => {
         console.log('ErRoR', error);
-        this.serverMessage = 'Not found: token or user doesnt exists'
+        if (error.response.status == 404) {
+          localStorage.credentials = false;
+          location.reload()
+        }
       });
     }
   },
   methods: {
     onLogout() {
-      axios.get('/auth/logout', {
-        withCredentials: true
-      })
+      axios.post('/auth/logout')
       .then((response) => {
         console.log('onLogout() response: ', response);
         if (response.status == 200) {
@@ -80,6 +80,10 @@ export default {
       })
       .catch((error) => {
         console.log('ErRoR', error);
+        if (error.response.status == 404) {
+          localStorage.credentials = false;
+          location.reload()
+        }
       })
     }
   }
