@@ -34,9 +34,10 @@ class AuthController {
     if (user) {
       const authToken = generateAuthToken();
       response.set('AuthToken', authToken);
+      response.set('Access-Control-Expose-Headers', 'AuthToken');
       await AuthService.createOrUpdateAuthToken(authToken, user);
       console.log('successful authentication');
-      response.status(202).send({ AuthToken: authToken }); // successful authentication
+      response.sendStatus(202); // successful authentication
       return;
     } else {
       response.sendStatus(403); // invalid username or password
@@ -44,7 +45,7 @@ class AuthController {
     }
   }
   async getUserData(request, response) {
-    const authtoken = request.header('AuthToken');
+    const authtoken = request.header('authtoken');
     console.log('authcontroller.getUserData: authtoken', authtoken);
     if (!authtoken) {
       response.sendStatus(404);

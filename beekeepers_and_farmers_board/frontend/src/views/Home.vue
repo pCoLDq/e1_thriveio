@@ -68,7 +68,7 @@ export default {
       })
       .catch((error) => {
         console.log('ErRoR', error);
-        this.username = 'Not found: token or user doesnt exists'
+        this.serverMessage = 'Not found: token or user doesnt exists'
       });
     }
   },

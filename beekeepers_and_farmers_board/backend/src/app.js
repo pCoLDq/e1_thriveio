@@ -6,7 +6,6 @@ const app = express();
 const cors = require('cors');
 
 app.use(cors());
-app.options('*', cors());
 
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');

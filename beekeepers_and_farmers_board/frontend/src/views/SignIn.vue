@@ -34,7 +34,8 @@ export default {
       .then((response) => {
         console.log("SignIn.vue: response", response);
         if(response.status == 202) {
-          localStorage.AuthToken = response.data.AuthToken;
+          localStorage.AuthToken = response.headers['authtoken'];
+          console.log('response', response);
           console.log('localStorage.AuthToken ===', localStorage.AuthToken);
           location.assign('/')
         }
