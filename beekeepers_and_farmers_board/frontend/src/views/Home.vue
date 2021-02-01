@@ -46,7 +46,11 @@ export default {
       numOfHives: '',
     }
   },
-  mounted() {
+  created() {
+    this.username = ''
+    this.email = ''
+    this.userType = ''
+    this.numOfHives = ''
     if(localStorage.credentials == 'true') {
       console.log(localStorage.credentials);
       axios.get('/auth/user_data')
@@ -85,7 +89,7 @@ export default {
           location.reload()
         }
       })
-    }
+    },
   }
 }
 </script>
@@ -96,6 +100,7 @@ export default {
 }
 .auth {
   display: flex;
+
 }
 .functions-for-farmers {
   margin-left: auto;
@@ -129,6 +134,8 @@ a {
   background-color: #59a66b;
   padding: 20px;
   color: white;
+  width: 230px;
+  max-width: 400px;
 }
 .logout-button {
   position: absolute;

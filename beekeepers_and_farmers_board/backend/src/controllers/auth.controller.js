@@ -12,8 +12,8 @@ class AuthController {
       return;
     }
     if (password === confPassword) {
-      const signup = await AuthService.registerUser(username, email, userType, password, numOfHives);
-      if (signup) {
+      const isRegistered = await AuthService.insertUser(username, email, userType, password, numOfHives);
+      if (isRegistered) {
         response.sendStatus(201); // user successfully registered
       } else {
         response.sendStatus(501); // server err
@@ -29,17 +29,17 @@ class AuthController {
     const { username, password } = request.body;
     const hashedPassword = getHashedPassword(password);
 
-    const user = await AuthService.authenticationUser(username, hashedPassword);
-    console.log('authcontroller.loginUser: user', user);
-    if (user) {
+    const userIdIfCredentialsFalseIfNot = await AuthService.authenticationUser(username, hashedPassword);
+    console.log('authcontroller.loginUser: user', userIdIfCredentialsFalseIfNot);
+    if (userIdIfCredentialsFalseIfNot) {
       const authToken = generateAuthToken();
       response.cookie('AuthToken', authToken, {
         httpOnly: true,
         sameSite: true,
       });
-      await AuthService.createOrUpdateAuthToken(authToken, user);
+      await AuthService.createOrUpdateAuthToken(authToken, userIdIfCredentialsFalseIfNot);
       console.log('successful authentication');
-      response.sendStatus(202); // successful authentication
+      response.sendStatus(200); // successful authentication
       return;
     } else {
       response.sendStatus(403); // invalid username or password

@@ -3,26 +3,26 @@ const connection = require('../config/db_connect_async');
 const getHashedPassword = require('../service_functions/passwords_encoding');
 
 class AuthService {
-  async registerUser(username, email, userType, password, numOfHives) {
+  async insertUser(username, email, userType, password, numOfHives) {
     const hashedPassword = getHashedPassword(password);
     let status = false;
 
-    await connection.execute('INSERT INTO `users` (`username`, `email`, `password`) VALUES (?, ?, ?)', [
+    await connection.execute('INSERT INTO `users` (`username`, `email`, `password`) VALUES (?, ?, ?);', [
       username,
       email,
       hashedPassword,
     ]); // registering user
 
-    const userIdResults = await connection.execute('SELECT id FROM users WHERE username = ?', [username]);
+    const userIdResults = await connection.execute('SELECT id FROM users WHERE username = ?;', [username]);
     const userId = userIdResults[0][0].id;
 
     if (userType == 'beekeeper') {
-      await connection.execute('INSERT INTO `beekeepers` (`user_id`, `num_of_hives`) VALUES (?, ?)', [
+      await connection.execute('INSERT INTO `beekeepers` (`user_id`, `num_of_hives`) VALUES (?, ?);', [
         userId,
         numOfHives,
       ]); // registering beekeeper
     } else if (userType == 'farmer') {
-      await connection.execute('INSERT INTO `farmers` (`user_id`) VALUES (?)', [userId]);
+      await connection.execute('INSERT INTO `farmers` (`user_id`) VALUES (?);', [userId]);
     } // registering farmer
 
     console.log('user registered:', username);
@@ -51,7 +51,7 @@ class AuthService {
   async createOrUpdateAuthToken(authToken, userId) {
     console.log('authservuce.createOrUpdateAuthToken: authtoken', authToken);
     console.log('authservuce.createOrUpdateAuthToken: userId', userId);
-    const authtokensResults = await connection.execute('SELECT * FROM authtokens WHERE user_id = ?', [userId]);
+    const authtokensResults = await connection.execute('SELECT * FROM authtokens WHERE user_id = ?;', [userId]);
     const potentialAuthtoken = authtokensResults[0][0];
 
     if (potentialAuthtoken) {
@@ -103,7 +103,7 @@ class AuthService {
     return false; // not good, the password or username is incorrect, probably there's a ass hacking
   }
   async getUserDataByAuthToken(authtoken) {
-    const resultsAuthtokens = await connection.execute('SELECT * FROM authtokens WHERE token = ?', [authtoken]);
+    const resultsAuthtokens = await connection.execute('SELECT * FROM authtokens WHERE token = ?;', [authtoken]);
     const potentialAuthtoken = resultsAuthtokens[0][0];
 
     if (potentialAuthtoken) {
@@ -128,7 +128,7 @@ class AuthService {
     }
   }
   async deleteAuthToken(authtoken) {
-    await connection.execute('DELETE FROM authtokens WHERE token = ?', [authtoken]);
+    await connection.execute('DELETE FROM authtokens WHERE token = ?;', [authtoken]);
     return;
   }
 }

@@ -35,7 +35,7 @@ export default {
       })
       .then((response) => {
         console.log("SignIn.vue: response", response);
-        if(response.status == 202) {
+        if(response.status == 200) {
           console.log('response', response);
           localStorage.credentials = true;
           location.assign('/')
