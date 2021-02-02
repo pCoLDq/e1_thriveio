@@ -1,19 +1,18 @@
 <template>
   <div>
     <h2>Sign In</h2>
-    <SignInForm @form-submit="onFormSubmit" v-bind:serverMessage="serverMessage"></SignInForm>
+    <SignInForm @form-submit="onFormSubmit" v-bind:serverMessage="serverMessage" />
     <label><router-link to="/"> Home </router-link></label>
   </div>
 </template>
 
 <script>
-
-import SignInForm from '@/components/SignInForm'
-import Axios from 'axios'
+import SignInForm from '@/components/SignInForm';
+import Axios from 'axios';
 
 const axios = Axios.create({
   baseURL: 'http://localhost:8080/auth/',
-  timeout: 3000
+  timeout: 3000,
 });
 
 export default {
@@ -22,48 +21,49 @@ export default {
   },
   data() {
     return {
-      serverMessage: ''
-    }
+      serverMessage: '',
+    };
   },
   methods: {
     onFormSubmit(formData) {
       console.log('input', formData);
       this.serverMessage = '';
 
-      axios.post('/login', formData, {
-        withCredentials: true
-      })
-      .then((response) => {
-        console.log("SignIn.vue: response", response);
-        if(response.status == 200) {
-          console.log('response', response);
-          localStorage.credentials = true;
-          location.assign('/')
-        }
-      })
-      .catch((error) => {
-        console.log('ErRoR', error);
-        if(error.response.status == 403) {
-          this.serverMessage = 'invalid username or password'
-        }
-      });
-    }
-  }
-}
+      axios
+        .post('/login', formData, {
+          withCredentials: true,
+        })
+        .then(response => {
+          console.log('SignIn.vue: response', response);
+          if (response.status == 200) {
+            console.log('response', response);
+            localStorage.credentials = true;
+            location.assign('/');
+          }
+        })
+        .catch(error => {
+          console.log('ErRoR', error);
+          if (error.response.status == 403) {
+            this.serverMessage = 'invalid username or password';
+          }
+        });
+    },
+  },
+};
 </script>
 
 <style scoped>
 div {
-  display:grid;
+  display: grid;
 }
 h2 {
-    position: absolute;
-    color: #59a66b;
-    font-size: 2em;
-    font-family: sans-serif;
-    font-weight: 600;
-    left: 48%;
-    top: 8%;
+  position: absolute;
+  color: #59a66b;
+  font-size: 2em;
+  font-family: sans-serif;
+  font-weight: 600;
+  left: 48%;
+  top: 8%;
 }
 label {
   position: absolute;
@@ -71,7 +71,7 @@ label {
   top: 35%;
 }
 a {
-  border:1px solid #59a66b;
+  border: 1px solid #59a66b;
   text-decoration: none;
   padding: 10px;
   margin-right: 20px;

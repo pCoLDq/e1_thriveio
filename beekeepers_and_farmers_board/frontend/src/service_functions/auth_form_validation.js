@@ -2,7 +2,7 @@ function hasWhiteSpace(str) {
   return str.indexOf(' ') >= 0;
 }
 
-function isInputValid(input) {
+function isAuthInputValid(input) {
   let isValid = true;
   for (let field in input) {
     switch (field) {
@@ -25,4 +25,4 @@ function isInputValid(input) {
   return isValid;
 }
 
-export { isInputValid };
+export { isAuthInputValid };

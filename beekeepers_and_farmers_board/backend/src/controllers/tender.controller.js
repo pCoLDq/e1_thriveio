@@ -38,7 +38,7 @@ class TenderController {
       response.status(200).send(allTenders);
       return;
     }
-    response.sendStatus(204); // no content
+    response.sendStatus(404); // no content
   }
 
   async updateTender(request, response) {

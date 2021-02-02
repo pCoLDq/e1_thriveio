@@ -49,6 +49,10 @@ class TenderService {
   async selectAllTenders() {
     const resultsTenders = await connection.execute('SELECT * FROM tenders;'); // TODO: add pagination
     const listOfTenders = resultsTenders[0];
+    for (let tender of listOfTenders) {
+      const resultsUsers = await connection.execute('SELECT username FROM users WHERE id = ?', [tender.farmer_id]);
+      tender.farmerUsername = resultsUsers[0][0].username;
+    }
     return listOfTenders;
   }
 

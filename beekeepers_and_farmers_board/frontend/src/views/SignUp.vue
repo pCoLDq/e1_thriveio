@@ -6,13 +6,12 @@
 </template>
 
 <script>
-
-import SignUpForm from '@/components/SignUpForm'
-import Axios from 'axios'
+import SignUpForm from '@/components/SignUpForm';
+import Axios from 'axios';
 
 const axios = Axios.create({
   baseURL: 'http://localhost:8080/auth/',
-  timeout: 3000
+  timeout: 3000,
 });
 
 export default {
@@ -21,39 +20,44 @@ export default {
   },
   data() {
     return {
-      serverMessage: ''
-    }
+      serverMessage: '',
+    };
   },
   methods: {
     onFormSubmit(formData) {
       console.log(formData);
       this.serverMessage = '';
-      
-      axios.post('/register', formData)
-      .then((response) => {
-        console.log("SignUp.vue: response", response);
-        if(response.status == 201) {
-          location.assign("/signin")
-        }
-      })
-      .catch((error) => {
-        console.log('ErRoR', error);
-        if (error.response.status == 400) {
-          this.serverMessage = 'passwords doesnt match'
-        } else if (error.response.status == 409) {
-          this.serverMessage = 'user with the same username or email is already registered'
-        } else if (error.response.status == 501) {
-          this.serverMessage = 'server error'
-        }
-      });
-    }
-  }
-}
+
+      axios
+        .post('/register', formData)
+        .then(response => {
+          console.log('SignUp.vue: response', response);
+          if (response.status == 201) {
+            location.assign('/signin');
+          }
+        })
+        .catch(error => {
+          console.log('ErRoR', error);
+          switch (error.response.status) {
+            case 400:
+              this.serverMessage = 'passwords doesnt match';
+              break;
+            case 409:
+              this.serverMessage = 'user with the same username or email is already registered';
+              break;
+            case 501:
+              this.serverMessage = 'server error';
+              break;
+          }
+        });
+    },
+  },
+};
 </script>
 
 <style scoped>
 div {
-  display:grid;
+  display: grid;
 }
 label {
   position: absolute;
@@ -61,7 +65,7 @@ label {
   top: 65%;
 }
 a {
-  border:1px solid #59a66b;
+  border: 1px solid #59a66b;
   text-decoration: none;
   padding: 10px;
   margin-right: 20px;
