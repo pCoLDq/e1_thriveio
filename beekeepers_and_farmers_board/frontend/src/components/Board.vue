@@ -1,11 +1,11 @@
 <template>
   <div class="board">
-    
     <Tender
       v-for="tender in tenders"
       :key="tender.id"
       v-bind:tender="tender"
       v-bind:userData="userData"
+      @delete-tender="deleteFromBoard"
     />
 
     <p v-if="!tenders">no tender have been created yet</p>
@@ -19,6 +19,13 @@ export default {
   props: ['tenders', 'userData'],
   components: {
     Tender,
+  },
+  methods: {
+    deleteFromBoard(tenderId) {
+      this.tenders = this.tenders.filter(tender => {
+        return tender.id != tenderId;
+      });
+    },
   },
 };
 </script>

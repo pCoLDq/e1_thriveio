@@ -71,12 +71,14 @@ class TenderController {
 
   async deleteTender(request, response) {
     const tenderId = request.body.id;
+    console.log(request);
     if (!tenderId) {
       response.sendStatus(400); // bad request
       return;
     }
 
-    if (TenderService.doesTheUserHaveTheRightsToTender(request)) {
+    const isCredentials = await TenderService.doesTheUserHaveTheRightsToTender(request);
+    if (!isCredentials) {
       response.sendStatus(403); // user doesnt have rights to tender
       return;
     }

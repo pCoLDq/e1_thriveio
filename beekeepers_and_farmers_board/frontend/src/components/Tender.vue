@@ -2,27 +2,29 @@
   <div class="tender-block">
     <h4 v-if="isUserOwner">YOU ARE OWNER:</h4>
     <h4>Farmer's username: {{ tender.farmerUsername }}</h4>
-    <h4>Required num of hives: 
+    <h4>
+      Required num of hives:
       <span v-if="!editMode">
         {{ newReqNumOfHives }}
-      </span> 
+      </span>
       <span v-else>
         <input type="text" v-model="newReqNumOfHives" />
       </span>
     </h4>
 
-    <h4>Salary:
+    <h4>
+      Salary:
       <span v-if="!editMode">
         {{ newSalary }}
-      </span> 
+      </span>
       <span v-else>
         <input type="text" v-model="newSalary" />
       </span>
     </h4>
 
-
-    <button v-if="isUserOwner && !editMode" type="submit" @click="editMode = true;">Edit</button>
-    <button v-if="isUserOwner && editMode" type="submit" @click="editMode = false;">Save</button>
+    <button v-if="isUserOwner" class="rm" @click="onDeleteTender">&times;</button>
+    <button v-if="isUserOwner && !editMode" type="submit" @click="editMode = true">Edit</button>
+    <button v-if="isUserOwner && editMode" type="submit" @click="editMode = false">Save</button>
     <button v-if="userData.userType == 'beekeeper'" type="submit" @click="onOffer">Offer myself</button>
   </div>
 </template>
@@ -47,27 +49,62 @@ export default {
   },
   watch: {
     editMode: function(value) {
-      if(!value) { // if changes saved
+      if (!value) {
+        // if changes saved
         const fieldsToUpdate = {
           id: this.tender.id,
           requiredNumOfHives: this.newReqNumOfHives == this.tender.required_num_of_hives ? null : this.newReqNumOfHives,
           salary: this.newSalary == this.tender.salary ? null : this.newSalary,
         };
-        if(!fieldsToUpdate.requiredNumOfHives && !fieldsToUpdate.salary) { // if any change wasnt detected
+        if (!fieldsToUpdate.requiredNumOfHives && !fieldsToUpdate.salary) {
+          // if any change wasnt detected
           return;
         }
-        axios.patch('/update', fieldsToUpdate)
-        .then((response) => {
-        if(response.status == 200) {
-          console.log('tender successfully updated');
-        }
-      })
+        axios
+          .patch('/update', fieldsToUpdate)
+          .then(response => {
+            if (response.status == 200) {
+              console.log('tender successfully updated');
+            }
+          })
+          .catch(error => {
+            console.log('ErRoR', error);
+            switch (error.response.status) {
+              case 400:
+                console.log('tender with this id doesnt exist');
+                break;
+              case 403:
+                console.log('user doesnt have rights to tender');
+                break;
+            }
+          });
       }
-    }
+    },
   },
   methods: {
     onOffer() {
       // creating beekeeper_suggestion
+    },
+    onDeleteTender() {
+      axios
+        .post('/delete', { id: this.tender.id })
+        .then(response => {
+          if (response.status == 200) {
+            this.$emit('delete-tender', this.tender.id);
+            console.log('tender successfully deleted');
+          }
+        })
+        .catch(error => {
+          console.log('ErRoR', error);
+          switch (error.response.status) {
+            case 400:
+              console.log('tender with this id doesnt exist');
+              break;
+            case 403:
+              console.log('user doesnt have rights to tender');
+              break;
+          }
+        });
     },
   },
 };
@@ -93,5 +130,15 @@ button {
   position: relative;
   left: 88%;
   top: -30%;
+}
+.rm {
+  background: white;
+  border-radius: 50%;
+  border: 0;
+  top: -85px;
+  left: 800px;
+}
+button:focus {
+  outline: none;
 }
 </style>

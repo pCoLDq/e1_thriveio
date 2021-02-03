@@ -134,7 +134,7 @@ class TenderService {
   }
 
   async deleteTender(tenderId) {
-    await connection.execute('DELETE FROM tenders WHERE id = ?', [tenderId]);
+    await connection.execute('DELETE FROM tenders WHERE id = ?;', [tenderId]);
     return;
   }
 }
