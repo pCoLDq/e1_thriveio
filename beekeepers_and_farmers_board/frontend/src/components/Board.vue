@@ -1,11 +1,11 @@
 <template>
   <div class="board">
+    
     <Tender
       v-for="tender in tenders"
       :key="tender.id"
       v-bind:tender="tender"
       v-bind:userData="userData"
-      @send-offer="onSendOffer"
     />
 
     <p v-if="!tenders">no tender have been created yet</p>
@@ -19,11 +19,6 @@ export default {
   props: ['tenders', 'userData'],
   components: {
     Tender,
-  },
-  methods: {
-    onSendOffer(tenderId) {
-      this.$emit('send-offer', tenderId);
-    },
   },
 };
 </script>

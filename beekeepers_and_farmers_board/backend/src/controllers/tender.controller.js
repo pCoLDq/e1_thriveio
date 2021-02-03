@@ -48,8 +48,6 @@ class TenderController {
       return;
     }
 
-    request.cookies['AuthToken'] = request.body.AuthToken;
-
     const isCredentials = await TenderService.doesTheUserHaveTheRightsToTender(request);
     if (!isCredentials) {
       response.sendStatus(403); // user doesnt have rights to tender

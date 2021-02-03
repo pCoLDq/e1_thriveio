@@ -13,7 +13,7 @@
       <p v-if="userData.userType == 'beekeeper'">Num of hives: {{ userData.numOfHives }}</p>
     </div>
 
-    <Board v-bind:tenders="tenders" v-bind:userData="userData" @send-offer="onSendOffer" />
+    <Board v-bind:tenders="tenders" v-bind:userData="userData" />
 
     <div v-if="userData.userType == 'farmer'" class="functions-for-farmers">
       <router-link to="/addtender"> <p class="link">Add Tender</p> </router-link>
@@ -119,10 +119,6 @@ export default {
             location.reload();
           }
         });
-    },
-    onSendOffer(tenderId) {
-      // creating beekeeper_suggestion
-      console.log(tenderId);
     },
   },
 };

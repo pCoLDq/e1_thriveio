@@ -2,28 +2,72 @@
   <div class="tender-block">
     <h4 v-if="isUserOwner">YOU ARE OWNER:</h4>
     <h4>Farmer's username: {{ tender.farmerUsername }}</h4>
-    <h4>Required num of hives: {{ tender.required_num_of_hives }}</h4>
-    <h4>Salary: {{ tender.salary }}$</h4>
+    <h4>Required num of hives: 
+      <span v-if="!editMode">
+        {{ newReqNumOfHives }}
+      </span> 
+      <span v-else>
+        <input type="text" v-model="newReqNumOfHives" />
+      </span>
+    </h4>
 
-    <button v-if="isUserOwner" type="submit" @click="onEdit">Edit</button>
+    <h4>Salary:
+      <span v-if="!editMode">
+        {{ newSalary }}
+      </span> 
+      <span v-else>
+        <input type="text" v-model="newSalary" />
+      </span>
+    </h4>
+
+
+    <button v-if="isUserOwner && !editMode" type="submit" @click="editMode = true;">Edit</button>
+    <button v-if="isUserOwner && editMode" type="submit" @click="editMode = false;">Save</button>
     <button v-if="userData.userType == 'beekeeper'" type="submit" @click="onOffer">Offer myself</button>
   </div>
 </template>
 
 <script>
+import Axios from 'axios';
+
+const axios = Axios.create({
+  baseURL: 'http://localhost:8080/tenders',
+  withCredentials: true,
+  timeout: 3000,
+});
 export default {
   props: ['tender', 'userData'],
   data() {
     return {
       isUserOwner: this.userData.id == this.tender.farmer_id,
+      newReqNumOfHives: this.tender.required_num_of_hives,
+      newSalary: this.tender.salary,
+      editMode: false,
     };
+  },
+  watch: {
+    editMode: function(value) {
+      if(!value) { // if changes saved
+        const fieldsToUpdate = {
+          id: this.tender.id,
+          requiredNumOfHives: this.newReqNumOfHives == this.tender.required_num_of_hives ? null : this.newReqNumOfHives,
+          salary: this.newSalary == this.tender.salary ? null : this.newSalary,
+        };
+        if(!fieldsToUpdate.requiredNumOfHives && !fieldsToUpdate.salary) { // if any change wasnt detected
+          return;
+        }
+        axios.patch('/update', fieldsToUpdate)
+        .then((response) => {
+        if(response.status == 200) {
+          console.log('tender successfully updated');
+        }
+      })
+      }
+    }
   },
   methods: {
     onOffer() {
-      this.$emit('send-offer', this.tender.id);
-    },
-    onEdit() {
-      //do smething
+      // creating beekeeper_suggestion
     },
   },
 };
@@ -33,7 +77,7 @@ export default {
 .tender-block {
   margin: 10px;
   width: 98%;
-  height: 100px;
+  height: 110px;
   margin: 8px;
   background-color: #59a66b;
   border: 2px solid white;

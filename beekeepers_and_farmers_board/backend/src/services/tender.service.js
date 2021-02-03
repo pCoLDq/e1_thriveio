@@ -91,7 +91,7 @@ class TenderService {
   async doesTheUserHaveTheRightsToTender(request) {
     const tenderId = request.body.id;
     const authtoken = request.cookies['AuthToken'];
-    console.log("authcontroller.getUserData: request.cookies['AuthToken']", authtoken);
+    console.log("TenderService.doesTheUserHaveTheRightsToTender: request.cookies['AuthToken']", authtoken);
     if (!authtoken) {
       console.log('TenderService.doesTheUserHaveTheRightsToTender: returning false at 77s');
       return false; // unauthorized
