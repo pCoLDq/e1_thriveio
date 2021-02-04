@@ -22,7 +22,7 @@ export default {
   },
   methods: {
     deleteFromBoard(tenderId) {
-      this.tenders = this.tenders.filter(tender => {
+      this.tenders = this.tenders.filter((tender) => {
         return tender.id != tenderId;
       });
     },

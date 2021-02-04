@@ -30,14 +30,14 @@ export default {
         .post('/create', formData, {
           withCredentials: true,
         })
-        .then(response => {
+        .then((response) => {
           console.log('AddTender.vue: response', response);
           if (response.status == 201) {
             console.log('response', response);
             location.assign('/');
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log('ErRoR', error);
           switch (error.response.status) {
             case 403:

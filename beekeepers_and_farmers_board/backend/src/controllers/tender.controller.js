@@ -1,4 +1,3 @@
-const connection = require('../config/db_connect_async');
 const TenderService = require('../services/tender.service');
 
 class TenderController {
@@ -70,8 +69,8 @@ class TenderController {
   }
 
   async deleteTender(request, response) {
-    const tenderId = request.body.id;
-    console.log(request);
+    const tenderId = request.query.id;
+    console.log(tenderId);
     if (!tenderId) {
       response.sendStatus(400); // bad request
       return;

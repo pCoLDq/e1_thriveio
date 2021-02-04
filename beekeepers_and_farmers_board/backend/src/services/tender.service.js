@@ -89,7 +89,7 @@ class TenderService {
   }
 
   async doesTheUserHaveTheRightsToTender(request) {
-    const tenderId = request.body.id;
+    const tenderId = request.body.id || request.query.id;
     const authtoken = request.cookies['AuthToken'];
     console.log("TenderService.doesTheUserHaveTheRightsToTender: request.cookies['AuthToken']", authtoken);
     if (!authtoken) {

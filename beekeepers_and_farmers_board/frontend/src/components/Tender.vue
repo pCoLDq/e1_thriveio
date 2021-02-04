@@ -62,12 +62,12 @@ export default {
         }
         axios
           .patch('/update', fieldsToUpdate)
-          .then(response => {
+          .then((response) => {
             if (response.status == 200) {
               console.log('tender successfully updated');
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.log('ErRoR', error);
             switch (error.response.status) {
               case 400:
@@ -87,14 +87,14 @@ export default {
     },
     onDeleteTender() {
       axios
-        .post('/delete', { id: this.tender.id })
-        .then(response => {
+        .delete('/delete?id=' + this.tender.id)
+        .then((response) => {
           if (response.status == 200) {
             this.$emit('delete-tender', this.tender.id);
             console.log('tender successfully deleted');
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log('ErRoR', error);
           switch (error.response.status) {
             case 400:

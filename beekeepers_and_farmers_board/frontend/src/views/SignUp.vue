@@ -30,13 +30,13 @@ export default {
 
       axios
         .post('/register', formData)
-        .then(response => {
+        .then((response) => {
           console.log('SignUp.vue: response', response);
           if (response.status == 201) {
             location.assign('/signin');
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log('ErRoR', error);
           switch (error.response.status) {
             case 400:

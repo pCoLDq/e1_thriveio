@@ -61,7 +61,7 @@ export default {
         console.log('localStorage.credentials:', localStorage.credentials);
         axios
           .get('/auth/user_data')
-          .then(response => {
+          .then((response) => {
             console.log('Home.vue: response', response);
             if (response.status == 200) {
               this.userData.id = response.data.id;
@@ -71,7 +71,7 @@ export default {
               this.userData.numOfHives = response.data.numOfHives;
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.log('ErRoR', error);
             if (error.response.status == 404) {
               localStorage.credentials = false;
@@ -85,14 +85,14 @@ export default {
       this.tenders = [];
       axios
         .get('/tenders/get_all')
-        .then(response => {
+        .then((response) => {
           console.log('Home.vue: response', response);
           if (response.status == 200) {
             this.tenders = response.data;
             console.log('this.tenders: ', this.tenders);
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log('ErRoR', error);
           if (error.response.status == 404) {
             // doing something
@@ -105,14 +105,14 @@ export default {
     onLogout() {
       axios
         .post('/auth/logout')
-        .then(response => {
+        .then((response) => {
           console.log('onLogout() response: ', response);
           if (response.status == 200) {
             localStorage.credentials = false;
             location.reload();
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log('ErRoR', error);
           if (error.response.status == 404) {
             localStorage.credentials = false;
