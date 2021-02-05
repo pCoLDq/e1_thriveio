@@ -9,35 +9,35 @@ class SharedService {
       -authtoken from req is equal to token from db for this user
     */
     const resultsId = await connection.execute('SELECT user_id FROM authtokens WHERE token = ?;', [authtoken]);
-    const userIdIfCredentialsUndefinedIfNot = resultsId[0][0];
-    if (userIdIfCredentialsUndefinedIfNot) {
-      console.log('SharedService.getUserIdByAuthtoken: credentials', userIdIfCredentialsUndefinedIfNot.user_id);
-      return userIdIfCredentialsUndefinedIfNot.user_id;
+    const userId = resultsId[0][0];
+    if (userId) {
+      console.log('SharedService.getUserIdByAuthtoken: credentials', userId.user_id);
+      return userId.user_id;
     }
-    console.log('SharedService.getUserIdByAuthtoken: returning false');
-    return false;
+    console.log('SharedService.getUserIdByAuthtoken: returning undefined');
+    return;
   }
   async getUserType(userId) {
     const beekeepersResults = await connection.execute('SELECT * FROM beekeepers WHERE user_id = ?;', [userId]);
-    const potentialBeekeeper = beekeepersResults[0][0];
+    const beekeeperData = beekeepersResults[0][0];
 
-    if (potentialBeekeeper) {
+    if (beekeeperData) {
       return {
         userType: 'beekeeper',
-        numOfHives: potentialBeekeeper.num_of_hives,
+        numOfHives: beekeeperData.num_of_hives,
       };
     }
 
     const farmersResults = await connection.execute('SELECT * FROM farmers WHERE user_id = ?;', [userId]);
-    const potentialFarmer = farmersResults[0][0];
+    const farmerData = farmersResults[0][0];
 
-    if (potentialFarmer) {
+    if (farmerData) {
       return {
         userType: 'farmer',
       };
     }
 
-    return false;
+    return;
   }
 }
 

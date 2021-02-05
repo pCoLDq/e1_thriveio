@@ -9,8 +9,8 @@ class TenderController {
       return;
     }
 
-    const farmerIdIfUserIsFarmerFalseIfNot = await TenderService.getFarmerIdByAuthtoken(authtoken);
-    if (!farmerIdIfUserIsFarmerFalseIfNot) {
+    const farmerId = await TenderService.getFarmerIdByAuthtoken(authtoken);
+    if (!farmerId) {
       response.sendStatus(401); // user isnt farmer
       return;
     }
@@ -21,13 +21,9 @@ class TenderController {
       return;
     }
 
-    const isCreated = await TenderService.insertTender(farmerIdIfUserIsFarmerFalseIfNot, requiredNumOfHives, salary);
-    if (isCreated) {
-      console.log('tender created');
-      response.sendStatus(201); // tender created
-      return;
-    }
-    response.sendStatus(501);
+    await TenderService.insertTender(farmerId, requiredNumOfHives, salary);
+    console.log('tender created');
+    response.sendStatus(201);
     return;
   }
 
@@ -47,7 +43,7 @@ class TenderController {
       return;
     }
 
-    const isCredentials = await TenderService.doesTheUserHaveTheRightsToTender(request);
+    const isCredentials = await TenderService.isTheUserOwnerOfTender(request);
     if (!isCredentials) {
       response.sendStatus(403); // user doesnt have rights to tender
       return;
@@ -76,7 +72,7 @@ class TenderController {
       return;
     }
 
-    const isCredentials = await TenderService.doesTheUserHaveTheRightsToTender(request);
+    const isCredentials = await TenderService.isTheUserOwnerOfTender(request);
     if (!isCredentials) {
       response.sendStatus(403); // user doesnt have rights to tender
       return;

@@ -22,7 +22,7 @@
       </span>
     </h4>
 
-    <button v-if="isUserOwner" class="rm" @click="onDeleteTender">&times;</button>
+    <button v-if="isUserOwner" class="rm" @click="onDeleteTender">X</button>
     <button v-if="isUserOwner && !editMode" type="submit" @click="editMode = true">Edit</button>
     <button v-if="isUserOwner && editMode" type="submit" @click="editMode = false">Save</button>
     <button v-if="userData.userType == 'beekeeper'" type="submit" @click="onOffer">Offer myself</button>
@@ -114,7 +114,7 @@ export default {
 .tender-block {
   margin: 10px;
   width: 98%;
-  height: 110px;
+  height: 150px;
   margin: 8px;
   background-color: #59a66b;
   border: 2px solid white;

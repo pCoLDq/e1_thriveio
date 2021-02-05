@@ -5,7 +5,7 @@ const generateAuthToken = require('../service_functions/generate_authtoken');
 class AuthController {
   async createUser(request, response) {
     const { username, email, userType, numOfHives, password, confPassword } = request.body;
-    const isTaken = await AuthService.checkIfTheUsernameOrEmailIsTaken(username, email);
+    const isTaken = await AuthService.isTheUsernameOrEmailTaken(username, email);
     console.log('isTaken:', isTaken);
     if (isTaken) {
       response.sendStatus(409); // user with the same username or email is already registered
@@ -29,15 +29,15 @@ class AuthController {
     const { username, password } = request.body;
     const hashedPassword = getHashedPassword(password);
 
-    const userIdIfCredentialsFalseIfNot = await AuthService.authenticationUser(username, hashedPassword);
-    console.log('authcontroller.loginUser: user', userIdIfCredentialsFalseIfNot);
-    if (userIdIfCredentialsFalseIfNot) {
+    const userId = await AuthService.authenticationUser(username, hashedPassword);
+    console.log('authcontroller.loginUser: user', userId);
+    if (userId) {
       const authToken = generateAuthToken();
       response.cookie('AuthToken', authToken, {
         httpOnly: true,
         sameSite: true,
       });
-      await AuthService.createOrUpdateAuthToken(authToken, userIdIfCredentialsFalseIfNot);
+      await AuthService.createOrUpdateAuthToken(authToken, userId);
       console.log('successful authentication');
       response.sendStatus(200); // successful authentication
       return;

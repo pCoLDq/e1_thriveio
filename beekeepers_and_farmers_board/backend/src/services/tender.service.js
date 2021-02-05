@@ -7,7 +7,7 @@ class TenderService {
       'INSERT INTO `tenders` (`farmer_id`, `required_num_of_hives`, `salary`) VALUES (?, ?, ?);',
       [farmerId, requiredNumOfHives, salary]
     ); // add new tender to db
-    return true;
+    return;
   }
 
   async getFarmerIdByAuthtoken(authtoken) {
@@ -16,20 +16,18 @@ class TenderService {
     -authtoken from req is equal to token from db for this user
     -user is farmer
     */
-    const userIdIfCredentialsFalseIfNot = await SharedService.getUserIdByAuthtoken(authtoken);
-    if (userIdIfCredentialsFalseIfNot) {
-      const farmersResults = await connection.execute('SELECT * FROM farmers WHERE user_id = ?', [
-        userIdIfCredentialsFalseIfNot,
-      ]);
-      const farmerIfUserIsFarmerUndefinedIfNot = farmersResults[0][0];
-      if (farmerIfUserIsFarmerUndefinedIfNot) {
+    const userId = await SharedService.getUserIdByAuthtoken(authtoken);
+    if (userId) {
+      const farmerResults = await connection.execute('SELECT * FROM farmers WHERE user_id = ?', [userId]);
+      const farmerData = farmerResults[0][0];
+      if (farmerData) {
         // if user is farmer
         console.log('TenderService.getFarmerIdByAuthtoken: user is farmer');
-        return userIdIfCredentialsFalseIfNot; // returning farmer id
+        return userId; // returning farmer id
       }
     }
     console.log('TenderService.getFarmerIdByAuthtoken: returning false at 37s');
-    return false;
+    return;
   }
 
   async selectAllTenders() {
@@ -42,53 +40,53 @@ class TenderService {
     return listOfTenders;
   }
 
-  async checkIfTheTenderBelongsToFarmer(authtoken, tenderId) {
+  async isFarmerOwnsTheTender(authtoken, tenderId) {
     /*
     returns true if 
     -authtoken from req is equal to token from db for this user
     -user is farmer
     -user owns the tender
     */
-    const farmerIdIfUserIsFarmerFalseIfNot = await this.getFarmerIdByAuthtoken(authtoken);
+    const farmerId = await this.getFarmerIdByAuthtoken(authtoken);
 
-    if (!farmerIdIfUserIsFarmerFalseIfNot) {
-      console.log('TenderService.checkIfTheTenderBelongsToFarmer: returning false at 51s');
+    if (!farmerId) {
+      console.log('TenderService.isFarmerOwnsTheTender: returning false at 51s');
       return false; // user isnt farmer
     }
 
     const resultsTenders = await connection.execute('SELECT farmer_id FROM tenders WHERE id = ?', [tenderId]);
-    const farmerTenderOwnerIdIfTheTenderExistsUndefinedIfNot = resultsTenders[0][0];
+    const tenderOwnerId = resultsTenders[0][0];
 
-    if (!farmerTenderOwnerIdIfTheTenderExistsUndefinedIfNot) {
+    if (!tenderOwnerId) {
       // if tender doesnt exist
-      console.log('TenderService.checkIfTheTenderBelongsToFarmer: returning false at 59s');
+      console.log('TenderService.isFarmerOwnsTheTender: returning false at 59s');
       return false;
     }
 
-    if (farmerTenderOwnerIdIfTheTenderExistsUndefinedIfNot.farmer_id == farmerIdIfUserIsFarmerFalseIfNot) {
+    if (tenderOwnerId.farmer_id == farmerId) {
       // if farmer in req really owns the tender
-      console.log('TenderService.checkIfTheTenderBelongsToFarmer: returning true at 65s');
+      console.log('TenderService.isFarmerOwnsTheTender: returning true at 65s');
       return true;
     }
-    console.log('TenderService.checkIfTheTenderBelongsToFarmer: returning false at 68s');
+    console.log('TenderService.isFarmerOwnsTheTender: returning false at 68s');
     return false;
   }
 
-  async doesTheUserHaveTheRightsToTender(request) {
+  async isTheUserOwnerOfTender(request) {
     const tenderId = request.body.id || request.query.id;
     const authtoken = request.cookies['AuthToken'];
-    console.log("TenderService.doesTheUserHaveTheRightsToTender: request.cookies['AuthToken']", authtoken);
+    console.log("TenderService.isTheUserOwnerOfTender: request.cookies['AuthToken']", authtoken);
     if (!authtoken) {
-      console.log('TenderService.doesTheUserHaveTheRightsToTender: returning false at 77s');
+      console.log('TenderService.isTheUserOwnerOfTender: returning false at 77s');
       return false; // unauthorized
     } else {
-      const isFarmerOwnsTheTender = await this.checkIfTheTenderBelongsToFarmer(authtoken, tenderId);
+      const isFarmerOwnsTheTender = await this.isFarmerOwnsTheTender(authtoken, tenderId);
       if (isFarmerOwnsTheTender) {
-        console.log('TenderService.doesTheUserHaveTheRightsToTender: returning true at 81s');
+        console.log('TenderService.isTheUserOwnerOfTender: returning true at 81s');
         return true; // forbidden: the farmer doesnt own the tender
       }
     }
-    console.log('TenderService.doesTheUserHaveTheRightsToTender: returning false at 85s');
+    console.log('TenderService.isTheUserOwnerOfTender: returning false at 85s');
     return false;
   }
 

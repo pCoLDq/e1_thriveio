@@ -23,8 +23,10 @@ class AuthService {
         numOfHives,
       ]); // registering beekeeper
     } else if (userType == 'farmer') {
-      await connection.execute('INSERT INTO `farmers` (`user_id`) VALUES (?);', [userId]);
-    } // registering farmer
+      await connection.execute('INSERT INTO `farmers` (`user_id`) VALUES (?);', [userId]); // registering farmer
+    } else {
+      return status;
+    }
 
     console.log('user registered:', username);
     status = true;
@@ -32,7 +34,7 @@ class AuthService {
     return status;
   }
 
-  async checkIfTheUsernameOrEmailIsTaken(username, email) {
+  async isTheUsernameOrEmailTaken(username, email) {
     let status = true; // true if user with this name or email address is already registered, false if not
 
     const resultsUsers = await connection.execute('SELECT * FROM users WHERE username = ? OR email = ?;', [
@@ -40,7 +42,7 @@ class AuthService {
       email,
     ]);
     const user = resultsUsers[0][0];
-    console.log('authservice.checkIfTheUsernameOrEmailIsTaken: resultsUsers[0]', resultsUsers[0]);
+    console.log('authservice.isTheUsernameOrEmailTaken: resultsUsers[0]', resultsUsers[0]);
 
     if (!user) {
       status = false; // that's alright, user with this name or email address isnt registered yet
@@ -53,9 +55,9 @@ class AuthService {
     console.log('authservuce.createOrUpdateAuthToken: authtoken', authToken);
     console.log('authservuce.createOrUpdateAuthToken: userId', userId);
     const authtokensResults = await connection.execute('SELECT * FROM authtokens WHERE user_id = ?;', [userId]);
-    const potentialAuthtoken = authtokensResults[0][0];
+    const authtoken = authtokensResults[0][0];
 
-    if (potentialAuthtoken) {
+    if (authtoken) {
       await connection.execute('DELETE FROM authtokens WHERE user_id = ?', [userId]);
     } // deleting an existing authtoken
 
@@ -74,35 +76,35 @@ class AuthService {
     const user = resultsUsers[0][0];
     console.log('auth.service.authenticationUser: user', user);
 
-    if (user != undefined) {
+    if (user) {
       console.log('credentials', user.id);
       return user.id; // tht's alright, the entered data is correct
     }
     return false; // not good, the password or username is incorrect, probably there's a ass hacking
   }
-  async getUserDataByAuthToken(authtoken) {
-    const resultsAuthtokens = await connection.execute('SELECT * FROM authtokens WHERE token = ?;', [authtoken]);
-    const potentialAuthtoken = resultsAuthtokens[0][0];
+  async getUserDataByAuthToken(token) {
+    const resultsAuthtokens = await connection.execute('SELECT * FROM authtokens WHERE token = ?;', [token]);
+    const authtoken = resultsAuthtokens[0][0];
 
-    if (potentialAuthtoken) {
-      const resultsUsers = await connection.execute('SELECT * FROM users WHERE id = ?;', [potentialAuthtoken.user_id]);
-      const potentialUser = resultsUsers[0][0];
-      const userTypeData = await SharedService.getUserType(potentialUser.id);
+    if (authtoken) {
+      const resultUsers = await connection.execute('SELECT * FROM users WHERE id = ?;', [authtoken.user_id]);
+      const user = resultUsers[0][0];
+      const userTypeData = await SharedService.getUserType(user.id);
 
-      if (potentialUser && userTypeData) {
+      if (user && userTypeData) {
         return Object.assign(
           {
-            id: potentialUser.id,
-            username: potentialUser.username,
-            email: potentialUser.email,
+            id: user.id,
+            username: user.username,
+            email: user.email,
           },
           userTypeData
         );
       } else {
-        return false;
+        return;
       }
     } else {
-      return false;
+      return;
     }
   }
   async deleteAuthToken(authtoken) {

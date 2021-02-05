@@ -49,7 +49,7 @@ export default {
       tenders: [],
     };
   },
-  created() {
+  mounted() {
     {
       // getting user data
       this.userData.id = '';
