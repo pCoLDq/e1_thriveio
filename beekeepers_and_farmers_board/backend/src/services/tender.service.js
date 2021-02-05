@@ -1,4 +1,5 @@
 const connection = require('../config/db_connect_async');
+const SharedService = require('./shared.service');
 
 class TenderService {
   async insertTender(farmerId, requiredNumOfHives, salary) {
@@ -9,28 +10,13 @@ class TenderService {
     return true;
   }
 
-  async getUserIdByAuthtoken(authtoken) {
-    /*
-    returns user id if 
-    -authtoken from req is equal to token from db for this user
-    */
-    const resultsId = await connection.execute('SELECT user_id FROM authtokens WHERE token = ?;', [authtoken]);
-    const userIdIfCredentialsUndefinedIfNot = resultsId[0][0];
-    if (userIdIfCredentialsUndefinedIfNot) {
-      console.log('TenderService.getUserIdByAuthtoken: credentials', userIdIfCredentialsUndefinedIfNot.user_id);
-      return userIdIfCredentialsUndefinedIfNot.user_id;
-    }
-    console.log('TenderService.getUserIdByAuthtoken: returning false');
-    return false;
-  }
-
   async getFarmerIdByAuthtoken(authtoken) {
     /*
     returns user/farmer id if 
     -authtoken from req is equal to token from db for this user
     -user is farmer
     */
-    const userIdIfCredentialsFalseIfNot = await this.getUserIdByAuthtoken(authtoken);
+    const userIdIfCredentialsFalseIfNot = await SharedService.getUserIdByAuthtoken(authtoken);
     if (userIdIfCredentialsFalseIfNot) {
       const farmersResults = await connection.execute('SELECT * FROM farmers WHERE user_id = ?', [
         userIdIfCredentialsFalseIfNot,
@@ -135,6 +121,11 @@ class TenderService {
 
   async deleteTender(tenderId) {
     await connection.execute('DELETE FROM tenders WHERE id = ?;', [tenderId]);
+    return;
+  }
+
+  async closeBeekeeperSuggestion(suggestionId) {
+    await connection.execute('UPDATE bkprs_suggestions SET status = ? WHERE id = ?', ['not_relevant', suggestionId]);
     return;
   }
 }

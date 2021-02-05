@@ -1,6 +1,7 @@
 // const connection = require('../config/db_connect');
 const connection = require('../config/db_connect_async');
 const getHashedPassword = require('../service_functions/passwords_encoding');
+const SharedService = require('../services/shared.service');
 
 class AuthService {
   async insertUser(username, email, userType, password, numOfHives) {
@@ -64,29 +65,6 @@ class AuthService {
     return;
   }
 
-  async getUserType(userId) {
-    const beekeepersResults = await connection.execute('SELECT * FROM beekeepers WHERE user_id = ?;', [userId]);
-    const potentialBeekeeper = beekeepersResults[0][0];
-
-    if (potentialBeekeeper) {
-      return {
-        userType: 'beekeeper',
-        numOfHives: potentialBeekeeper.num_of_hives,
-      };
-    }
-
-    const farmersResults = await connection.execute('SELECT * FROM farmers WHERE user_id = ?;', [userId]);
-    const potentialFarmer = farmersResults[0][0];
-
-    if (potentialFarmer) {
-      return {
-        userType: 'farmer',
-      };
-    }
-
-    return false;
-  }
-
   async authenticationUser(username, hashedPassword) {
     const resultsUsers = await connection.execute('SELECT * FROM users WHERE username = ? AND password = ?;', [
       username,
@@ -109,7 +87,7 @@ class AuthService {
     if (potentialAuthtoken) {
       const resultsUsers = await connection.execute('SELECT * FROM users WHERE id = ?;', [potentialAuthtoken.user_id]);
       const potentialUser = resultsUsers[0][0];
-      const userTypeData = await this.getUserType(potentialUser.id);
+      const userTypeData = await SharedService.getUserType(potentialUser.id);
 
       if (potentialUser && userTypeData) {
         return Object.assign(
