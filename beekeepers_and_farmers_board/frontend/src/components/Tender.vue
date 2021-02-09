@@ -1,6 +1,7 @@
 <template>
   <div class="tender-block">
     <h4 v-if="isUserOwner">YOU ARE OWNER:</h4>
+    <h4>ID: {{ tender.id }}</h4>
     <h4>Farmer's username: {{ tender.farmerUsername }}</h4>
     <h4>
       Required num of hives:

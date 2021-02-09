@@ -1,5 +1,6 @@
 <template>
   <div class="board">
+    <h3>TENDERS</h3>
     <Tender
       v-for="tender in tenders"
       :key="tender.id"
@@ -14,11 +15,43 @@
 
 <script>
 import Tender from '@/components/Tender';
+import Axios from 'axios';
+
+const axios = Axios.create({
+  baseURL: 'http://localhost:8080/',
+  withCredentials: true,
+  timeout: 3000,
+});
 
 export default {
-  props: ['tenders', 'userData'],
+  props: ['userData'],
   components: {
     Tender,
+  },
+  data() {
+    return {
+      tenders: [],
+    };
+  },
+  mounted() {
+    // getting tenders
+    this.tenders = [];
+    axios
+      .get('/tenders/get_all')
+      .then((response) => {
+        console.log('Home.vue: response', response);
+        if (response.status == 200) {
+          this.tenders = response.data;
+          console.log('this.tenders: ', this.tenders);
+        }
+      })
+      .catch((error) => {
+        console.log('ErRoR', error);
+        if (error.response.status == 404) {
+          // doing something
+          location.reload();
+        }
+      });
   },
   methods: {
     deleteFromBoard(tenderId) {
@@ -31,6 +64,10 @@ export default {
 </script>
 
 <style scoped>
+h3 {
+  margin-left: 25%;
+  color: #59a66b;
+}
 .board {
   display: block;
   position: fixed;

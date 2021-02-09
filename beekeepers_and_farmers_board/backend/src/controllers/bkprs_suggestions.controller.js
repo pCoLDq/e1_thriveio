@@ -113,6 +113,65 @@ class BeekeepersSuggestionsController {
     response.sendStatus(501);
     return;
   }
+  async denyBeekeeperSuggestion(request, response) {
+    const { suggestionId } = request.body;
+
+    if (!suggestionId) {
+      response.sendStatus(400); // bad request
+      return;
+    }
+
+    const authtoken = request.cookies['AuthToken'];
+    console.log('BeekeepersSuggestionsService.deleteSuggestion: authtoken', authtoken);
+
+    if (!authtoken) {
+      response.sendStatus(401); // unauthorized
+      return;
+    }
+
+    const userId = SharedService.getUserIdByAuthtoken(authtoken);
+
+    const suggestionData = BeekeepersSuggestionsService.selectSuggestionById(suggestionId);
+    const tenderData = BeekeepersSuggestionsService.selectTenderById(suggestionData.tender_id);
+
+    if (tenderData.farmer_id == userId) {
+      await BeekeepersSuggestionsService.setDeniedStatus(suggestionId);
+      response.sendStatus(200);
+      return;
+    }
+    response.sendStatus(403); // user doesnt owns the tender
+    return;
+  }
+
+  async admitBeekeeperSuggesion(request, response) {
+    const { suggestionId } = request.body;
+
+    if (!suggestionId) {
+      response.sendStatus(400); // bad request
+      return;
+    }
+
+    const authtoken = request.cookies['AuthToken'];
+    console.log('BeekeepersSuggestionsService.deleteSuggestion: authtoken', authtoken);
+
+    if (!authtoken) {
+      response.sendStatus(401); // unauthorized
+      return;
+    }
+
+    const userId = SharedService.getUserIdByAuthtoken(authtoken);
+
+    const suggestionData = BeekeepersSuggestionsService.selectSuggestionById(suggestionId);
+    const tenderData = BeekeepersSuggestionsService.selectTenderById(suggestionData.tender_id);
+
+    if (tenderData.farmer_id == userId) {
+      await BeekeepersSuggestionsService.setBeekeeperWinnerForTender(tender.id, userId);
+      await BeekeepersSuggestionsService.setNotRelevantStatusForTender(tender.id);
+      await BeekeepersSuggestionsService.deleteSuggestion(suggestionId);
+      response.sendStatus(200);
+      return;
+    }
+  }
 }
 
 module.exports = new BeekeepersSuggestionsController();

@@ -13,17 +13,20 @@
       <p v-if="userData.userType == 'beekeeper'">Num of hives: {{ userData.numOfHives }}</p>
     </div>
 
-    <Board v-bind:tenders="tenders" v-bind:userData="userData" />
+    <Board v-bind:userData="userData" />
 
     <div v-if="userData.userType == 'farmer'" class="functions-for-farmers">
       <router-link to="/addtender"> <p class="link">Add Tender</p> </router-link>
     </div>
     <p class="link logout-button" @click="onLogout" v-if="credentials">Logout</p>
+
+    <SuggestionsBoard v-if="credentials" v-bind:userData="userData" />
   </div>
 </template>
 
 <script>
 import Board from '@/components/Board';
+import SuggestionsBoard from '@/components/SuggestionsBoard';
 import Axios from 'axios';
 
 const axios = Axios.create({
@@ -35,6 +38,7 @@ const axios = Axios.create({
 export default {
   components: {
     Board,
+    SuggestionsBoard,
   },
   data() {
     return {
@@ -79,26 +83,6 @@ export default {
             }
           });
       }
-    }
-    {
-      // getting tenders
-      this.tenders = [];
-      axios
-        .get('/tenders/get_all')
-        .then((response) => {
-          console.log('Home.vue: response', response);
-          if (response.status == 200) {
-            this.tenders = response.data;
-            console.log('this.tenders: ', this.tenders);
-          }
-        })
-        .catch((error) => {
-          console.log('ErRoR', error);
-          if (error.response.status == 404) {
-            // doing something
-            location.reload();
-          }
-        });
     }
   },
   methods: {

@@ -16,6 +16,14 @@ class BeekeepersSuggestionsService {
     return tender;
   }
 
+  async selectSuggestionById(suggestionId) {
+    const resultsSuggestions = await connection.execute('SELECT * FROM bkprs_suggestions WHERE id = ?;', [
+      suggestionId,
+    ]);
+    const suggestion = resultsSuggestions[0][0];
+    return suggestion;
+  }
+
   async isSuggestionExistsForTenderAndBeekeeper(tenderId, beekeeperId) {
     const resultsSuggestions = await connection.execute(
       'SELECT * FROM bkprs_suggestions WHERE tender_id = ? AND beekeeper_id = ?',
@@ -79,7 +87,7 @@ class BeekeepersSuggestionsService {
           tenderId,
         ]);
         if (suggestionsResults[0][0]) {
-          suggestionsList.push(suggestionsResults[0]);
+          suggestionsList.push(suggestionsResults[0][0]);
         }
       }
       console.log(
@@ -113,6 +121,19 @@ class BeekeepersSuggestionsService {
   async deleteSuggestion(suggestionId) {
     await connection.execute('DELETE FROM bkprs_suggestions WHERE id = ?;', [suggestionId]);
     return;
+  }
+
+  async setDeniedStatus(suggestionId) {
+    await connection.execute('UPDATE bkprs_suggestions SET status = ? WHERE id = ?', ['denied', suggestionId]);
+    return;
+  }
+
+  async setBeekeeperWinnerForTender(tenderId, userId) {
+    await connection.execute('UPDATE tenders SET beekeeper_winner_id = ? WHERE id = ?', [userId, tenderId]);
+  }
+
+  async setNotRelevantStatusForTender(tenderId) {
+    await connection.execute('UPDATE tenders SET status = `not_relevant` WHERE id = ?', [tenderId]);
   }
 }
 

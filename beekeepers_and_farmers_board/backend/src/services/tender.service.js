@@ -121,11 +121,6 @@ class TenderService {
     await connection.execute('DELETE FROM tenders WHERE id = ?;', [tenderId]);
     return;
   }
-
-  async closeBeekeeperSuggestion(suggestionId) {
-    await connection.execute('UPDATE bkprs_suggestions SET status = ? WHERE id = ?', ['not_relevant', suggestionId]);
-    return;
-  }
 }
 
 module.exports = new TenderService();
