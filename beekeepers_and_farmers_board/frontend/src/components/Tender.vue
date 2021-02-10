@@ -34,7 +34,7 @@
 import Axios from 'axios';
 
 const axios = Axios.create({
-  baseURL: 'http://localhost:8080/tenders',
+  baseURL: 'http://localhost:8080',
   withCredentials: true,
   timeout: 3000,
 });
@@ -85,10 +85,36 @@ export default {
   methods: {
     onOffer() {
       // creating beekeeper_suggestion
+      axios
+        .post('/beekeepers_suggestions/create', { tenderId: this.tender.id })
+        .then((response) => {
+          if (response.status == 201) {
+            console.log('suggestions created');
+            location.reload();
+          }
+        })
+        .catch((error) => {
+          switch (error.response.status) {
+            case 400:
+              console.log('400: bad request, no tender id was sent');
+              break;
+            case 401:
+              console.log('401: unauthorized');
+              break;
+            case 403:
+              console.log(
+                '403: user isnt beekeeper or token doesnt exists or beekeeper doesnt have enough num of hives'
+              );
+              break;
+            case 409:
+              console.log('409: suggestion already exists');
+              break;
+          }
+        });
     },
     onDeleteTender() {
       axios
-        .delete('/delete?id=' + this.tender.id)
+        .delete('/tenders/delete?id=' + this.tender.id)
         .then((response) => {
           if (response.status == 200) {
             this.$emit('delete-tender', this.tender.id);
@@ -129,7 +155,7 @@ h4 {
 button {
   color: #59a66b;
   position: relative;
-  left: 88%;
+  left: 80%;
   top: -30%;
 }
 .rm {

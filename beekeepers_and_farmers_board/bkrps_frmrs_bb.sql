@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.21, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.23, for Linux (x86_64)
 --
 -- Host: localhost    Database: bkrps_frmrs_bb
 -- ------------------------------------------------------
--- Server version	8.0.21
+-- Server version	8.0.23-0ubuntu0.20.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -37,7 +37,7 @@ CREATE TABLE `authtokens` (
 
 LOCK TABLES `authtokens` WRITE;
 /*!40000 ALTER TABLE `authtokens` DISABLE KEYS */;
-INSERT INTO `authtokens` VALUES ('418f7ff5f20f1d689eed11343d6f17a0fec2356bf4b14b72d3204f207ed0',13),('testtoken',15),('1bc9691d03e9bded489365e389564e6fc6c9d1e8dd08ac4a329fecc11e5a',22),('be819e72e034ee88f556e115844f70ddc9cdd027dff481526bab624e2aeb',25);
+INSERT INTO `authtokens` VALUES ('ee44a027c7662e1131890b3c8261c019462667e781386a81e47f0b84ebd0',13),('testtoken',15);
 /*!40000 ALTER TABLE `authtokens` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -77,13 +77,13 @@ CREATE TABLE `bkprs_suggestions` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tender_id` int NOT NULL,
   `beekeeper_id` int NOT NULL,
-  `status` enum('relevant','not_relevant') NOT NULL DEFAULT 'relevant',
+  `status` enum('admited','relevant','denied') NOT NULL DEFAULT 'relevant',
   PRIMARY KEY (`id`),
   KEY `tender_id` (`tender_id`),
   KEY `beekeeper_id` (`beekeeper_id`),
   CONSTRAINT `bkprs_suggestions_ibfk_1` FOREIGN KEY (`tender_id`) REFERENCES `tenders` (`id`),
   CONSTRAINT `bkprs_suggestions_ibfk_2` FOREIGN KEY (`beekeeper_id`) REFERENCES `beekeepers` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -92,6 +92,7 @@ CREATE TABLE `bkprs_suggestions` (
 
 LOCK TABLES `bkprs_suggestions` WRITE;
 /*!40000 ALTER TABLE `bkprs_suggestions` DISABLE KEYS */;
+INSERT INTO `bkprs_suggestions` VALUES (18,5,13,'admited'),(19,7,13,'admited'),(20,5,25,'relevant'),(21,7,25,'relevant'),(23,10,13,'denied'),(24,11,13,'admited');
 /*!40000 ALTER TABLE `bkprs_suggestions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,7 +139,7 @@ CREATE TABLE `tenders` (
   KEY `beekeeper_winner_id` (`beekeeper_winner_id`),
   CONSTRAINT `tenders_ibfk_1` FOREIGN KEY (`farmer_id`) REFERENCES `farmers` (`user_id`),
   CONSTRAINT `tenders_ibfk_2` FOREIGN KEY (`beekeeper_winner_id`) REFERENCES `beekeepers` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,7 +148,7 @@ CREATE TABLE `tenders` (
 
 LOCK TABLES `tenders` WRITE;
 /*!40000 ALTER TABLE `tenders` DISABLE KEYS */;
-INSERT INTO `tenders` VALUES (1,22,10,NULL,500,'relevant'),(2,22,15,NULL,300,'relevant');
+INSERT INTO `tenders` VALUES (5,22,12,13,454,'not_relevant'),(7,22,5,13,2000,'not_relevant'),(10,22,12,NULL,340,'relevant'),(11,22,14,13,470,'not_relevant');
 /*!40000 ALTER TABLE `tenders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -188,4 +189,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-01 21:58:19
+-- Dump completed on 2021-02-10 19:56:18

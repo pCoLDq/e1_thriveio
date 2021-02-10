@@ -36,7 +36,9 @@ export default {
     axios
       .get('/beekeepers_suggestions/get/')
       .then((response) => {
-        this.suggestions = response.data;
+        if (response.status == 200) {
+          this.suggestions = response.data;
+        }
       })
       .catch((error) => {
         switch (error.response.status) {

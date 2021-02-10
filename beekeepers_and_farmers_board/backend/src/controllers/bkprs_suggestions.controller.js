@@ -67,13 +67,13 @@ class BeekeepersSuggestionsController {
       response.status(200).send(suggestions);
       return;
     }
-    response.send(404); // no suggestions found
+    response.sendStatus(404); // no suggestions found
     return;
   }
 
   async deleteSuggestion(request, response) {
-    const { suggestionId } = request.query;
-
+    const suggestionId = request.query.id;
+    console.log(suggestionId);
     if (!suggestionId) {
       response.sendStatus(400); // bad request
       return;
@@ -129,10 +129,10 @@ class BeekeepersSuggestionsController {
       return;
     }
 
-    const userId = SharedService.getUserIdByAuthtoken(authtoken);
+    const userId = await SharedService.getUserIdByAuthtoken(authtoken);
 
-    const suggestionData = BeekeepersSuggestionsService.selectSuggestionById(suggestionId);
-    const tenderData = BeekeepersSuggestionsService.selectTenderById(suggestionData.tender_id);
+    const suggestionData = await BeekeepersSuggestionsService.selectSuggestionById(suggestionId);
+    const tenderData = await BeekeepersSuggestionsService.selectTenderById(suggestionData.tender_id);
 
     if (tenderData.farmer_id == userId) {
       await BeekeepersSuggestionsService.setDeniedStatus(suggestionId);
@@ -152,25 +152,65 @@ class BeekeepersSuggestionsController {
     }
 
     const authtoken = request.cookies['AuthToken'];
-    console.log('BeekeepersSuggestionsService.deleteSuggestion: authtoken', authtoken);
+    console.log('BeekeepersSuggestionsService.admitSuggestion: authtoken', authtoken);
 
     if (!authtoken) {
       response.sendStatus(401); // unauthorized
       return;
     }
 
-    const userId = SharedService.getUserIdByAuthtoken(authtoken);
+    const userId = await SharedService.getUserIdByAuthtoken(authtoken);
+    const suggestionData = await BeekeepersSuggestionsService.selectSuggestionById(suggestionId);
+    const tenderData = await BeekeepersSuggestionsService.selectTenderById(suggestionData.tender_id);
 
-    const suggestionData = BeekeepersSuggestionsService.selectSuggestionById(suggestionId);
-    const tenderData = BeekeepersSuggestionsService.selectTenderById(suggestionData.tender_id);
-
+    const isDenied = await BeekeepersSuggestionsService.isThereDeniedSuggestions(tenderData.id, userId);
+    if (isDenied) {
+      response.sendStatus(403);
+      return;
+    }
+    console.log(userId, suggestionData, tenderData);
     if (tenderData.farmer_id == userId) {
-      await BeekeepersSuggestionsService.setBeekeeperWinnerForTender(tender.id, userId);
-      await BeekeepersSuggestionsService.setNotRelevantStatusForTender(tender.id);
-      await BeekeepersSuggestionsService.deleteSuggestion(suggestionId);
+      await BeekeepersSuggestionsService.setBeekeeperWinnerForTender(tenderData.id, suggestionData.beekeeper_id);
+      await BeekeepersSuggestionsService.setNotRelevantStatusForTender(tenderData.id);
+      await BeekeepersSuggestionsService.setAdmitedStatusForSuggestion(suggestionId);
+
       response.sendStatus(200);
       return;
     }
+    response.sendStatus(501);
+    return;
+  }
+
+  async getFarmerIdByTenderId(request, response) {
+    const { tenderId } = request.query;
+
+    if (!tenderId) {
+      response.sendStatus(400); // bad request
+      return;
+    }
+
+    const authtoken = request.cookies['AuthToken'];
+    console.log('BeekeepersSuggestionsConroller.getFarmerIdByTenderId: authtoken', authtoken);
+
+    if (!authtoken) {
+      response.sendStatus(401); // unauthorized
+      return;
+    }
+
+    const userId = await SharedService.getUserIdByAuthtoken(authtoken);
+    const tenderData = await BeekeepersSuggestionsService.selectTenderById(tenderId);
+
+    if (userId == tenderData.beekeeper_winner_id) {
+      const email = await BeekeepersSuggestionsService.selectFarmerEmailById(tenderData.farmer_id);
+      if (email) {
+        response.status(200).send(email);
+        return;
+      }
+      response.sendStatus(404);
+      return;
+    }
+    response.sendStatus(501);
+    return;
   }
 }
 

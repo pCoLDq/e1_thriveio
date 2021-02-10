@@ -79,7 +79,10 @@ class BeekeepersSuggestionsService {
         return null; // no content
       }
     } else if (userType == 'farmer') {
-      const tenderIdResults = await connection.execute('SELECT id FROM tenders WHERE farmer_id = ?', [userId]);
+      const tenderIdResults = await connection.execute('SELECT id FROM tenders WHERE farmer_id = ? AND status = ?', [
+        userId,
+        'relevant',
+      ]);
       let suggestionsList = [];
       for (let tenderIdResult of tenderIdResults[0]) {
         const tenderId = tenderIdResult.id;
@@ -130,10 +133,35 @@ class BeekeepersSuggestionsService {
 
   async setBeekeeperWinnerForTender(tenderId, userId) {
     await connection.execute('UPDATE tenders SET beekeeper_winner_id = ? WHERE id = ?', [userId, tenderId]);
+    return;
   }
 
   async setNotRelevantStatusForTender(tenderId) {
-    await connection.execute('UPDATE tenders SET status = `not_relevant` WHERE id = ?', [tenderId]);
+    await connection.execute('UPDATE tenders SET status = ? WHERE id = ?', ['not_relevant', tenderId]);
+    return;
+  }
+
+  async setAdmitedStatusForSuggestion(suggestionId) {
+    await connection.execute('UPDATE bkprs_suggestions SET status = ? WHERE id = ?', ['admited', suggestionId]);
+    return;
+  }
+  async selectFarmerEmailById(farmerId) {
+    const emailResults = await connection.execute('SELECT email FROM users WHERE id = ?', [farmerId]);
+    if (emailResults[0][0]) {
+      return emailResults[0][0].email;
+    }
+    return;
+  }
+
+  async isThereDeniedSuggestions(tenderId, beekeeperId) {
+    const suggestionsResults = await connection.execute(
+      'SELECT * FROM bkprs_suggestions WHERE tender_id = ? AND beekeeper_id = ?',
+      [tenderId, beekeeperId]
+    );
+    if (!suggestionsResults[0][0]) {
+      return false;
+    }
+    return true;
   }
 }
 
